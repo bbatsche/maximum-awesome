@@ -179,11 +179,17 @@ exec /Applications/MacVim.app/Contents/MacOS/Vim "$@"
     end
   end
 
+  desc 'Install vim'
+  task :vim do
+    step 'vim'
+    brew_install 'vim', '--override-system-vi'
+  end
+
   desc 'Install Vundle'
   task :vundle do
     step 'vundle'
     install_github_bundle 'gmarik','vundle'
-    sh '~/bin/vim -c "BundleInstall" -c "q" -c "q"'
+    sh '/usr/local/bin/vim -c "BundleInstall" -c "q" -c "q"'
   end
 end
 
@@ -209,13 +215,14 @@ LINKED_FILES = filemap(
 desc 'Install these config files.'
 task :install do
   Rake::Task['install:brew'].invoke
-  Rake::Task['install:brew_cask'].invoke
+  # Rake::Task['install:brew_cask'].invoke
   Rake::Task['install:the_silver_searcher'].invoke
-  Rake::Task['install:iterm'].invoke
+  # Rake::Task['install:iterm'].invoke
   Rake::Task['install:ctags'].invoke
   Rake::Task['install:reattach_to_user_namespace'].invoke
   Rake::Task['install:tmux'].invoke
-  Rake::Task['install:macvim'].invoke
+  # Rake::Task['install:macvim'].invoke
+  Rake::Task['install:vim'].invoke
 
   # TODO install gem ctags?
   # TODO run gem ctags?
@@ -237,8 +244,8 @@ task :install do
   colorschemes = `defaults read com.googlecode.iterm2 'Custom Color Presets'`
   dark  = colorschemes !~ /Solarized Dark/
   light = colorschemes !~ /Solarized Light/
-  sh('open', '-a', '/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Dark.itermcolors')) if dark
-  sh('open', '-a', '/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Light.itermcolors')) if light
+  # sh('open', '-a', '~/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Dark.itermcolors')) if dark
+  # sh('open', '-a', '~/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Light.itermcolors')) if light
 
   step 'iterm2 profiles'
   puts
