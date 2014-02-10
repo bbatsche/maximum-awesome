@@ -151,6 +151,18 @@ namespace :install do
     brew_install 'tmux'
   end
 
+  desc 'Install Git'
+  task :git do
+    step 'git'
+    brew_install 'git'
+  end
+
+  desc 'Install Mercurial'
+  task :mercurial do
+    step 'mercurial'
+    brew_install 'mercurial'
+  end
+
   desc 'Install MacVim'
   task :macvim do
     step 'MacVim'
@@ -216,6 +228,8 @@ desc 'Install these config files.'
 task :install do
   Rake::Task['install:brew'].invoke
   # Rake::Task['install:brew_cask'].invoke
+  Rake::Task['install:git'].invoke
+  Rake::Task['install:mercurial'].invoke
   Rake::Task['install:the_silver_searcher'].invoke
   # Rake::Task['install:iterm'].invoke
   Rake::Task['install:ctags'].invoke
