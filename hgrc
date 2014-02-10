@@ -1,0 +1,4 @@
+[extensions]
+prompt = ~/.hg-ext/hg-prompt/prompt.py
+
+%include ~/.hgrc.local

@@ -7,6 +7,13 @@ def brew_install(package, *options)
   sh "brew install #{package} #{options.join ' '}"
 end
 
+def hg_clone(url, path)
+  full_path = File.expand_path(path)
+  return if File.directory?(full_path)
+
+  system("/usr/local/bin/hg clone #{url} #{path}")
+end
+
 def install_github_bundle(user, package)
   unless File.exist? File.expand_path("~/.vim/bundle/#{package}")
     sh "git clone https://github.com/#{user}/#{package} ~/.vim/bundle/#{package}"
@@ -214,14 +221,16 @@ end
 
 COPIED_FILES = filemap(
   'vimrc.local'         => '~/.vimrc.local',
-  'vimrc.bundles.local' => '~/.vimrc.bundles.local'
+  'vimrc.bundles.local' => '~/.vimrc.bundles.local',
+  'hgrc.local'          => '~/.hgrc.local'
 )
 
 LINKED_FILES = filemap(
   'vim'           => '~/.vim',
   'tmux.conf'     => '~/.tmux.conf',
   'vimrc'         => '~/.vimrc',
-  'vimrc.bundles' => '~/.vimrc.bundles'
+  'vimrc.bundles' => '~/.vimrc.bundles',
+  'hgrc'          => '~/.hgrc'
 )
 
 desc 'Install these config files.'
@@ -240,6 +249,9 @@ task :install do
 
   # TODO install gem ctags?
   # TODO run gem ctags?
+
+  step 'hg prompt'
+  hg_clone 'ssh://hg@bitbucket.org/bbatsche/hg-prompt', '~/.hg-ext/hg-prompt'
 
   step 'symlink'
 
