@@ -227,7 +227,7 @@ LINKED_FILES = filemap(
 desc 'Install these config files.'
 task :install do
   Rake::Task['install:brew'].invoke
-  # Rake::Task['install:brew_cask'].invoke
+  Rake::Task['install:brew_cask'].invoke
   Rake::Task['install:git'].invoke
   Rake::Task['install:mercurial'].invoke
   Rake::Task['install:the_silver_searcher'].invoke
