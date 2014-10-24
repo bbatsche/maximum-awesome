@@ -1,10 +1,20 @@
 ENV['HOMEBREW_CASK_OPTS'] = "--appdir=/Applications"
 
-def brew_install(package, *options)
-  `brew list #{package}`
-  return if $?.success?
+def brew_install(package, *args)
+  versions = `brew list #{package} --versions`
+  options = args.last.is_a?(Hash) ? args.pop : {}
 
-  sh "brew install #{package} #{options.join ' '}"
+  # if brew exits with error we install tmux
+  if versions.empty?
+    sh "brew install #{package} #{args.join ' '}"
+  elsif options[:requires]
+    # brew did not error out, verify tmux is greater than 1.8
+    # e.g. brew_tmux_query = 'tmux 1.9a'
+    installed_version = versions.split(/\n/).first.split(' ')[1]
+    unless version_match?(options[:version], installed_version)
+      sh "brew upgrade #{package} #{args.join ' '}"
+    end
+  end
 end
 
 def hg_clone(url, path)
@@ -13,6 +23,10 @@ def hg_clone(url, path)
 
   system("/usr/local/bin/hg clone #{url} #{path}")
 end
+
+def version_match?(requirement, version)
+  # This is a hack, but it lets us avoid a gem dep for version checking.
+  Gem::Dependency.new('', requirement).match?('', version)
 
 def install_github_bundle(user, package)
   unless File.exist? File.expand_path("~/.vim/bundle/#{package}")
@@ -111,7 +125,7 @@ namespace :install do
   desc 'Update or Install Brew'
   task :brew do
     step 'Homebrew'
-    unless system('which brew > /dev/null || ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"')
+    unless system('which brew > /dev/null || ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"')
       raise "Homebrew must be installed before continuing."
     end
   end
@@ -119,8 +133,9 @@ namespace :install do
   desc 'Install Homebrew Cask'
   task :brew_cask do
     step 'Homebrew Cask'
-    unless system('brew tap | grep phinze/cask > /dev/null') || system('brew tap phinze/homebrew-cask')
-      abort "Failed to tap phinze/homebrew-cask in Homebrew."
+    system('brew untap phinze/cask') if system('brew tap | grep phinze/cask > /dev/null')
+    unless system('brew tap | grep caskroom/cask > /dev/null') || system('brew tap caskroom/homebrew-cask')
+      abort "Failed to tap caskroom/homebrew-cask in Homebrew."
     end
 
     brew_install 'brew-cask'
@@ -155,7 +170,8 @@ namespace :install do
   desc 'Install tmux'
   task :tmux do
     step 'tmux'
-    brew_install 'tmux'
+    # tmux copy-pipe function needs tmux >= 1.8
+    brew_install 'tmux', :requires => '>= 1.8'
   end
 
   desc 'Install Git'
@@ -222,6 +238,7 @@ end
 COPIED_FILES = filemap(
   'vimrc.local'         => '~/.vimrc.local',
   'vimrc.bundles.local' => '~/.vimrc.bundles.local',
+  'tmux.conf.local'     => '~/.tmux.conf.local'
   'hgrc.local'          => '~/.hgrc.local'
 )
 
