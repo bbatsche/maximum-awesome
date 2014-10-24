@@ -238,7 +238,7 @@ end
 COPIED_FILES = filemap(
   'vimrc.local'         => '~/.vimrc.local',
   'vimrc.bundles.local' => '~/.vimrc.bundles.local',
-  'tmux.conf.local'     => '~/.tmux.conf.local'
+  'tmux.conf.local'     => '~/.tmux.conf.local',
   'hgrc.local'          => '~/.hgrc.local'
 )
 
