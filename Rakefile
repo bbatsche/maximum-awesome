@@ -27,6 +27,7 @@ end
 def version_match?(requirement, version)
   # This is a hack, but it lets us avoid a gem dep for version checking.
   Gem::Dependency.new('', requirement).match?('', version)
+end
 
 def install_github_bundle(user, package)
   unless File.exist? File.expand_path("~/.vim/bundle/#{package}")
