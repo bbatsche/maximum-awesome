@@ -220,7 +220,7 @@ exec /Applications/MacVim.app/Contents/MacOS/Vim "$@"
   desc 'Install vim'
   task :vim do
     step 'vim'
-    brew_install 'vim', '--override-system-vi'
+    brew_install 'vim', '--with-override-system-vi'
   end
 
   desc 'Install Vundle'
@@ -271,7 +271,7 @@ task :install do
   # TODO run gem ctags?
 
   step 'hg prompt'
-  hg_clone 'ssh://hg@bitbucket.org/bbatsche/hg-prompt', '~/.hg-ext/hg-prompt'
+  hg_clone 'https://bbatsche@bitbucket.org/bbatsche/hg-prompt', '~/.hg-ext/hg-prompt'
 
   step 'symlink'
 
