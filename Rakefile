@@ -6,22 +6,21 @@ def brew_install(package, *args)
 
   # if brew exits with error we install tmux
   if versions.empty?
-    sh "brew install #{package} #{args.join ' '}"
+    sh "brew", "install", package, *args
   elsif options[:requires]
     # brew did not error out, verify tmux is greater than 1.8
     # e.g. brew_tmux_query = 'tmux 1.9a'
     installed_version = versions.split(/\n/).first.split(' ').last
     unless version_match?(options[:requires], installed_version)
-      sh "brew upgrade #{package} #{args.join ' '}"
+      sh "brew", "upgrade", package, args
     end
   end
 end
 
-def hg_clone(url, path)
-  full_path = File.expand_path(path)
-  return if File.directory?(full_path)
-
-  system("/usr/local/bin/hg clone #{url} #{path}")
+def brew_tap(tap)
+  unless system("brew tap | grep #{tap} > /dev/null") || system("brew", "tap", tap)
+    raise "Failed to tap #{tap} in Homebrew."
+  end
 end
 
 def version_match?(requirement, version)
@@ -34,7 +33,7 @@ end
 
 def install_github_bundle(user, package)
   unless File.exist? File.expand_path("~/.vim/bundle/#{package}")
-    sh "git clone https://github.com/#{user}/#{package} ~/.vim/bundle/#{package}"
+    sh "git", "clone", "https://github.com/#{user}/#{package}", "~/.vim/bundle/#{package}"
   end
 end
 
@@ -42,12 +41,11 @@ def brew_cask_install(package, *options)
   output = `brew cask info #{package}`
   return unless output.include?('Not installed')
 
-  sh "brew cask install --binarydir=#{`brew --prefix`.chomp}/bin #{package} #{options.join ' '}"
+  sh "brew", "cask", "install", package, *options
 end
 
 def step(description)
-  description = "-- #{description} "
-  description = description.ljust(80, '-')
+  description = "-- #{description} ".ljust(80, '-')
   puts
   puts "\e[32m#{description}\e[0m"
 end
@@ -97,6 +95,8 @@ def link_file(original_filename, symlink_filename)
       mv symlink_path, get_backup_path(symlink_path), :verbose => true
     end
   end
+  parent = File.dirname symlink_path
+  mkdir_p parent unless File.exists? parent
   ln_s original_path, symlink_path, :verbose => true
 end
 
@@ -126,7 +126,7 @@ def unlink_file(original_filename, symlink_filename)
 end
 
 namespace :install do
-  desc 'Update or Install Brew'
+  desc "Update or Install Brew"
   task :brew do
     step 'Homebrew'
     unless system('which brew > /dev/null || ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"')
@@ -134,101 +134,173 @@ namespace :install do
     end
   end
 
-  desc 'Install Homebrew Cask'
+  desc "Install Homebrew Cask"
   task :brew_cask do
-    step 'Homebrew Cask'
-    system('brew untap phinze/cask') if system('brew tap | grep phinze/cask > /dev/null')
-    unless system('brew tap | grep caskroom/cask > /dev/null') || system('brew tap caskroom/cask')
-      abort "Failed to tap caskroom/cask in Homebrew."
-    end
+    step "Homebrew Cask"
+    system "brew", "untap", "phinze/cask" if system %Q{brew tap | grep phinze/cask > /dev/null}
+    brew_tap "caskroom/cask"
   end
 
-  desc 'Install The Silver Searcher'
+  desc "Install The Silver Searcher"
   task :the_silver_searcher do
-    step 'the_silver_searcher'
-    brew_install 'the_silver_searcher'
+    step "the_silver_searcher"
+    brew_install "the_silver_searcher"
   end
 
-  desc 'Install iTerm'
-  task :iterm do
-    step 'iterm2'
-    unless app? 'iTerm'
-      brew_cask_install 'iterm2'
-    end
-  end
-
-  desc 'Install ctags'
-  task :ctags do
-    step 'ctags'
-    brew_install 'ctags'
-  end
-
-  desc 'Install reattach-to-user-namespace'
+  desc "Install reattach-to-user-namespace"
   task :reattach_to_user_namespace do
-    step 'reattach-to-user-namespace'
-    brew_install 'reattach-to-user-namespace'
+    step "reattach-to-user-namespace"
+    brew_install "reattach-to-user-namespace"
   end
 
-  desc 'Install tmux'
+  desc "Install tmux"
   task :tmux do
-    step 'tmux'
+    step "tmux"
     # tmux copy-pipe function needs tmux >= 1.8
-    brew_install 'tmux', :requires => '>= 2.1'
+    brew_install "tmux", :requires => ">= 2.1"
   end
 
-  desc 'Install Git'
+  desc "Install Git"
   task :git do
-    step 'git'
-    brew_install 'git'
+    step "git"
+    brew_install "git"
   end
 
-  desc 'Install Mercurial'
-  task :mercurial do
-    step 'mercurial'
-    brew_install 'mercurial'
-  end
-
-  desc 'Install MacVim'
-  task :macvim do
-    step 'MacVim'
-    unless app? 'MacVim'
-      brew_cask_install 'macvim'
-    end
-
-    bin_dir = File.expand_path('~/bin')
-    bin_vim = File.join(bin_dir, 'vim')
-    unless ENV['PATH'].split(':').include?(bin_dir)
-      puts 'Please add ~/bin to your PATH, e.g. run this command:'
-      puts
-      puts %{  echo 'export PATH="~/bin:$PATH"' >> ~/.bashrc}
-      puts
-      puts 'The exact command and file will vary by your shell and configuration.'
-      puts 'You may need to restart your shell.'
-    end
-
-    FileUtils.mkdir_p(bin_dir)
-    unless File.executable?(bin_vim)
-      File.open(bin_vim, 'w', 0744) do |io|
-        io << <<-SHELL
-#!/bin/bash
-exec /Applications/MacVim.app/Contents/MacOS/Vim "$@"
-        SHELL
-      end
-    end
-  end
-
-  desc 'Install vim'
+  desc "Install vim"
   task :vim do
-    step 'vim'
-    brew_install 'vim', '--with-override-system-vi'
+    step "vim"
+    brew_install "vim", "--with-override-system-vi"
   end
 
-  desc 'Install Vundle'
+  desc "Install Vundle"
   task :vundle do
-    step 'vundle'
-    install_github_bundle 'VundleVim','Vundle.vim'
-    sh '/usr/local/bin/vim -c "PluginInstall!" -c "q" -c "q"'
+    step "vundle"
+    install_github_bundle "VundleVim", "Vundle.vim"
+    sh "/usr/local/bin/vim", '-c', "PluginInstall!", "-c", "q", "-c", "q"
   end
+
+  desc "Install Fish"
+  task :fish do
+    step "Fish"
+    brew_install "fish", :requires => ">= 2.3"
+    brew_tap "fisherman/tap"
+    brew_install "fisherman"
+    puts "Changing Default Shell"
+    if IO.readlines("/etc/shells").grep(Regexp.quote "/usr/local/bin/fish").empty?
+      sh "sudo", "sh", "-c", "echo '\n/usr/local/bin/fish' >> /etc/shells"
+    end
+    sh "chsh", "-s", "/usr/local/bin/fish" unless ENV["SHELL"] == "/usr/local/bin/fish"
+    sh "/usr/local/bin/fish", "-c", "fisher"
+  end
+
+  desc "Install Direnv"
+  task :direnv do
+    step "Direnv"
+    brew_install "direnv"
+  end
+
+  desc "Install Dnsmasq"
+  task :dnsmasq do
+    step "Dnsmasq"
+    brew_install "dnsmasq"
+    brew_tap "homebrew/services"
+    puts "Create /etc/resolver and start service" unless Dir.exists?("/etc/resolver") && `brew services list`.match(/^dnsmasq\s+started/)
+    sh "sudo", "mkdir", "-p", "/etc/resolver" unless Dir.exists? "/etc/resolver"
+    sh "sudo", "brew", "services", "start", "dnsmasq" unless `brew services list`.match /^dnsmasq\s+started/
+  end
+
+  desc "Install Docker"
+  task :docker do
+    step "Docker"
+    brew_install "docker"
+    brew_install "docker-compose"
+    brew_cask_install "docker"
+  end
+
+  desc "Install PHP"
+  task :php do
+    step "PHP"
+    brew_install "php@7.0"
+    brew_install "php@7.1"
+    brew_install "php"
+    brew_install "composer"
+
+    sh "composer", "global", "install"
+  end
+
+  desc "Install Vagrant"
+  task :vagrant do
+    step "Vagrant"
+    brew_cask_install "vagrant"
+  end
+
+  desc "Install VirtualBox"
+  task :virtualbox do
+    step "VirtaulBox"
+    brew_cask_install "virtualbox"
+  end
+
+  desc "Install Node"
+  task :node do
+    step "Node.js"
+    brew_install "node"
+    brew_install "nvm"
+    brew_install "yarn"
+  end
+
+  desc "Install Ruby"
+  task :ruby do
+    step "Ruby"
+    brew_install "ruby"
+    brew_install "rbenv"
+    brew_install "ruby-build"
+  end
+
+  desc "Install Peco"
+  task :peco do
+    step "Peco"
+    brew_install "peco"
+  end
+
+  desc "Install The Fuck"
+  task :thefuck do
+    step "The Fuck"
+    brew_install "thefuck"
+  end
+
+  desc "Install Httpie"
+  task :httpie do
+    step "Httpie"
+    brew_install "httpie"
+  end
+
+  desc "Install Fzf"
+  task :fzf do
+    step "Fzf"
+    brew_install "fzf"
+  end
+
+  desc "Install Hub"
+  task :hub do
+    step "Hub"
+    brew_install "hub"
+  end
+
+  desc "Install Grc"
+  task :grc do
+    step "Grc"
+    brew_install "grc"
+  end
+
+  desc "Install Brew Command Not Found"
+  task :command_not_found do
+    step "Brew Command Not Found"
+    brew_tap "homebrew/command-not-found"
+  end
+
+  # TODO: Add stuff about motd launch daemon (if I can remember the syntax for all that junk)
+  # download vagrant setup?
+  # Vagrant plugins
 end
 
 def filemap(map)
@@ -239,76 +311,72 @@ def filemap(map)
 end
 
 COPIED_FILES = filemap(
-  'vimrc.local'         => '~/.vimrc.local',
-  'vimrc.bundles.local' => '~/.vimrc.bundles.local',
-  'tmux.conf.local'     => '~/.tmux.conf.local',
-  'hgrc.local'          => '~/.hgrc.local'
+  "vimrc.local"                          => "~/.vimrc.local",
+  "vimrc.bundles.local"                  => "~/.vimrc.bundles.local",
+  "tmux.conf.local"                      => "~/.tmux.conf.local",
+  "composer.json"                        => "~/.composer/composer.json",
+  "fishfile"                             => "~/.config/fish/fishfile",
+  "motd.sh"                              => "/usr/local/bin/motd.sh",
+  "net.listfeeder.home.UpdateBrew.plist" => "~/Library/LaunchDaemons/net.listfeeder.home.UpdateBrew.plist"
 )
 
 LINKED_FILES = filemap(
-  'vim'           => '~/.vim',
-  'tmux.conf'     => '~/.tmux.conf',
-  'vimrc'         => '~/.vimrc',
-  'vimrc.bundles' => '~/.vimrc.bundles',
-  'hgrc'          => '~/.hgrc'
+  "vim"           => "~/.vim",
+  "tmux.conf"     => "~/.tmux.conf",
+  "vimrc"         => "~/.vimrc",
+  "vimrc.bundles" => "~/.vimrc.bundles",
+  "docker.fish"   => "~/.config/fish/completions/docker.fish"
 )
 
-desc 'Install these config files.'
+desc "Install these config files."
 task :install do
-  Rake::Task['install:brew'].invoke
-  Rake::Task['install:brew_cask'].invoke
-  Rake::Task['install:git'].invoke
-  Rake::Task['install:mercurial'].invoke
-  Rake::Task['install:the_silver_searcher'].invoke
-  # Rake::Task['install:iterm'].invoke
-  Rake::Task['install:ctags'].invoke
-  Rake::Task['install:reattach_to_user_namespace'].invoke
-  Rake::Task['install:tmux'].invoke
-  # Rake::Task['install:macvim'].invoke
-  Rake::Task['install:vim'].invoke
+  Rake::Task["install:brew"].invoke
+  Rake::Task["install:brew_cask"].invoke
+  Rake::Task["install:git"].invoke
+  Rake::Task["install:the_silver_searcher"].invoke
+  Rake::Task["install:reattach_to_user_namespace"].invoke
+  Rake::Task["install:tmux"].invoke
+  Rake::Task["install:vim"].invoke
+  Rake::Task["install:direnv"].invoke
+  Rake::Task["install:dnsmasq"].invoke
+  Rake::Task["install:docker"].invoke
+  Rake::Task["install:vagrant"].invoke
+  # Rake::Task["install:virtualbox"].invoke ## This bombs out in our test VM until you unblock its extension
+  Rake::Task["install:node"].invoke
+  Rake::Task["install:ruby"].invoke
+  Rake::Task["install:peco"].invoke
+  Rake::Task["install:thefuck"].invoke
+  Rake::Task["install:httpie"].invoke
+  Rake::Task["install:fzf"].invoke
+  Rake::Task["install:hub"].invoke
+  Rake::Task["install:grc"].invoke
 
-  # TODO install gem ctags?
-  # TODO run gem ctags?
-
-  step 'hg prompt'
-  hg_clone 'https://bbatsche@bitbucket.org/bbatsche/hg-prompt', '~/.hg-ext/hg-prompt'
-
-  step 'symlink'
-
+  step "symlink"
   LINKED_FILES.each do |orig, link|
     link_file orig, link
   end
 
   COPIED_FILES.each do |orig, copy|
-    cp orig, copy, :verbose => true unless File.exist?(copy)
+    parent = File.dirname copy
+    mkdir_p parent unless File.exists? parent
+
+    cp orig, copy, :verbose => true unless File.exist? copy
   end
 
   # Install Vundle and bundles
-  Rake::Task['install:vundle'].invoke
+  Rake::Task["install:vundle"].invoke
+  Rake::Task["install:fish"].invoke
+  Rake::Task["install:php"].invoke
 
-  step 'iterm2 colorschemes'
-  colorschemes = `defaults read com.googlecode.iterm2 'Custom Color Presets'`
-  dark  = colorschemes !~ /Solarized Dark/
-  light = colorschemes !~ /Solarized Light/
-  # sh('open', '-a', '~/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Dark.itermcolors')) if dark
-  # sh('open', '-a', '~/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Light.itermcolors')) if light
-
-  step 'iterm2 profiles'
-  puts
-  puts "  Your turn!"
-  puts
-  puts "  Go and manually set up Solarized Light and Dark profiles in iTerm2."
-  puts "  (You can do this in 'Preferences' -> 'Profiles' by adding a new profile,"
-  puts "  then clicking the 'Colors' tab, 'Load Presets...' and choosing a Solarized option.)"
-  puts "  Also be sure to set Terminal Type to 'xterm-256color' in the 'Terminal' tab."
+  step "Finished!"
   puts
   puts "  Enjoy!"
   puts
 end
 
-desc 'Uninstall these config files.'
+desc "Uninstall these config files."
 task :uninstall do
-  step 'un-symlink'
+  step "un-symlink"
 
   # un-symlink files that still point to the installed locations
   LINKED_FILES.each do |orig, link|
@@ -320,21 +388,21 @@ task :uninstall do
     rm_f copy, :verbose => true if File.read(orig) == File.read(copy)
   end
 
-  step 'homebrew'
+  step "homebrew"
   puts
-  puts 'Manually uninstall homebrew if you wish: https://gist.github.com/mxcl/1173223.'
+  puts "Manually uninstall homebrew if you wish: https://gist.github.com/mxcl/1173223."
 
-  step 'iterm2'
+  step "iterm2"
   puts
-  puts 'Run this to uninstall iTerm:'
+  puts "Run this to uninstall iTerm:"
   puts
-  puts '  rm -rf /Applications/iTerm.app'
+  puts "  rm -rf /Applications/iTerm.app"
 
-  step 'macvim'
+  step "macvim"
   puts
-  puts 'Run this to uninstall MacVim:'
+  puts "Run this to uninstall MacVim:"
   puts
-  puts '  rm -rf /Applications/MacVim.app'
+  puts "  rm -rf /Applications/MacVim.app"
 end
 
 task :default => :install
