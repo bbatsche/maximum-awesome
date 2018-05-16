@@ -186,8 +186,8 @@ namespace :install do
     brew_tap "fisherman/tap"
     brew_install "fisherman"
     puts "Changing Default Shell"
-    if IO.readlines("/etc/shells").grep(Regexp.quote "/usr/local/bin/fish").empty?
-      sh "sudo", "sh", "-c", "echo '\n/usr/local/bin/fish' >> /etc/shells"
+    unless IO.readlines("/etc/shells").any? /^#{Regexp.quote("/usr/local/bin/fish")}$/
+      sh "sudo", "sh", "-c", "echo '\n/usr/local/bin/fish\n' >> /etc/shells"
     end
     sh "chsh", "-s", "/usr/local/bin/fish" unless ENV["SHELL"] == "/usr/local/bin/fish"
     sh "/usr/local/bin/fish", "-c", "fisher"
@@ -204,9 +204,11 @@ namespace :install do
     step "Dnsmasq"
     brew_install "dnsmasq"
     brew_tap "homebrew/services"
-    puts "Create /etc/resolver and start service" unless Dir.exists?("/etc/resolver") && `brew services list`.match(/^dnsmasq\s+started/)
-    sh "sudo", "mkdir", "-p", "/etc/resolver" unless Dir.exists? "/etc/resolver"
-    sh "sudo", "brew", "services", "start", "dnsmasq" unless `brew services list`.match /^dnsmasq\s+started/
+    unless Dir.exists?("/etc/resolver") && `brew services list`.match(/^dnsmasq\s+started/)
+      puts "Create /etc/resolver and start service"
+      sh "sudo", "mkdir", "-p", "/etc/resolver" unless Dir.exists? "/etc/resolver"
+      sh "sudo", "brew", "services", "start", "dnsmasq" unless `brew services list`.match /^dnsmasq\s+started/
+    end
   end
 
   desc "Install Docker"
@@ -298,6 +300,28 @@ namespace :install do
     brew_tap "homebrew/command-not-found"
   end
 
+  desc "Load Launchd Agent & Daemon"
+  task :launchd do
+    step "Launchd Agents & Daemons"
+    unless File.exists? "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
+      puts "Copy SetMotd Launch Daemon"
+      sh "sudo", "cp", __dir__ + "/net.listfeeder.SetMotd.plist", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
+    end
+
+    puts "Load SetMotd Launch Daemon"
+    sh "sudo", "launchctl", "list", "net.listfeeder.SetMotd" do |ok, res|
+      unless ok
+        sh "sudo", "launchctl", "load", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
+      end
+    end
+
+    sh "launchctl", "list", "net.listfeeder.UpdateBrew" do |ok, res|
+      unless ok
+        sh "launchctl", "load", Dir.home + "/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist"
+      end
+    end
+  end
+
   # TODO: Add stuff about motd launch daemon (if I can remember the syntax for all that junk)
   # download vagrant setup?
   # Vagrant plugins
@@ -311,21 +335,21 @@ def filemap(map)
 end
 
 COPIED_FILES = filemap(
-  "vimrc.local"                          => "~/.vimrc.local",
-  "vimrc.bundles.local"                  => "~/.vimrc.bundles.local",
-  "tmux.conf.local"                      => "~/.tmux.conf.local",
-  "composer.json"                        => "~/.composer/composer.json",
-  "fishfile"                             => "~/.config/fish/fishfile",
-  "motd.sh"                              => "/usr/local/bin/motd.sh",
-  "net.listfeeder.home.UpdateBrew.plist" => "~/Library/LaunchDaemons/net.listfeeder.home.UpdateBrew.plist"
+  "vimrc.local"         => "~/.vimrc.local",
+  "vimrc.bundles.local" => "~/.vimrc.bundles.local",
+  "tmux.conf.local"     => "~/.tmux.conf.local",
+  "composer.json"       => "~/.composer/composer.json",
+  "fishfile"            => "~/.config/fish/fishfile",
+  "motd.sh"             => "/usr/local/bin/motd.sh",
 )
 
 LINKED_FILES = filemap(
-  "vim"           => "~/.vim",
-  "tmux.conf"     => "~/.tmux.conf",
-  "vimrc"         => "~/.vimrc",
-  "vimrc.bundles" => "~/.vimrc.bundles",
-  "docker.fish"   => "~/.config/fish/completions/docker.fish"
+  "vim"                             => "~/.vim",
+  "tmux.conf"                       => "~/.tmux.conf",
+  "vimrc"                           => "~/.vimrc",
+  "vimrc.bundles"                   => "~/.vimrc.bundles",
+  "net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist"
+  "docker.fish"                     => "~/.config/fish/completions/docker.fish"
 )
 
 desc "Install these config files."
@@ -350,6 +374,7 @@ task :install do
   Rake::Task["install:fzf"].invoke
   Rake::Task["install:hub"].invoke
   Rake::Task["install:grc"].invoke
+  Rake::Task["install:command_not_found"].invoke
 
   step "symlink"
   LINKED_FILES.each do |orig, link|
@@ -367,6 +392,7 @@ task :install do
   Rake::Task["install:vundle"].invoke
   Rake::Task["install:fish"].invoke
   Rake::Task["install:php"].invoke
+  Rake::Task["install:launchd"].invoke
 
   step "Finished!"
   puts
