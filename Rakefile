@@ -298,7 +298,7 @@ namespace :install do
   end
 
   desc "Load Launchd Agent & Daemon"
-  task :launchd => [:link_files, :brew] do |task|
+  task :launchd => [:link_files, :copy_files, :brew] do |task|
     step task.comment
     unless File.exists? "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
       puts "Copy SetMotd Launch Daemon"

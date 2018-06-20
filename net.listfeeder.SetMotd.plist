@@ -6,7 +6,7 @@
 	<string>net.listfeeder.SetMotd</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/user/local/etc/motd.sh</string>
+		<string>/usr/local/bin/motd.sh</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
