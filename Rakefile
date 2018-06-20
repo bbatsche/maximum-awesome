@@ -318,6 +318,10 @@ namespace :install do
       sh "sudo", "cp", __dir__ + "/net.listfeeder.SetMotd.plist", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
     end
 
+    puts "Secure Motd Script"
+    sh "sudo", "chmod", "740", "/usr/local/bin/motd.sh"
+    sh "sudo", "chown", "root:wheel", "/usr/local/bin/motd.sh"
+
     puts "Load SetMotd Launch Daemon"
     unless system "sudo launchctl list net.listfeeder.SetMotd > /dev/null"
       sh "sudo", "launchctl", "load", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
