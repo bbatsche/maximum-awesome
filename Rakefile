@@ -24,6 +24,10 @@ def brew_tap(tap)
   end
 end
 
+def vagrant_plugin(plugin)
+  sh "vagrant", "plugin", "install", plugin unless system "vagrant plugin list | grep #{plugin} > /dev/null"
+end
+
 def version_match?(requirement, version)
   # This is a hack, but it lets us avoid a gem dep for version checking.
   # Gem dependencies must be numeric, so we remove non-numeric characters here.
@@ -200,6 +204,13 @@ CASK_PACKAGES = [
   "virtualbox",
 ]
 
+VAGRANT_PLUGINS = [
+  "vagrant-dnsmasq",
+  "vagrant-vbguest",
+  "vagrant-vmware-fusion",
+  "vagrant-pristine",
+]
+
 namespace :install do
   desc "Update or Install Brew"
   task :brew do |task|
@@ -252,6 +263,15 @@ namespace :install do
       unless system "#{pip} show #{package} > /dev/null"
         sh pip, "install", package
       end
+    end
+  end
+
+  desc "Install Vagrant Plugins"
+  task :vagrant_plugins => [:homebrew_casks, :homebrew_packages] do |task|
+    step task.comment
+    VAGRANT_PLUGINS.each do |plugin|
+      puts " - #{plugin}"
+      vagrant_plugin plugin
     end
   end
 
@@ -373,6 +393,7 @@ namespace :install do
     :vundle,
     :fish,
     :dnsmasq,
+    :vagrant_plugins,
     :composer,
     :iterm,
     :launchd,
