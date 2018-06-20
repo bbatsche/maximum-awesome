@@ -1,4 +1,5 @@
 ENV['HOMEBREW_CASK_OPTS'] = "--appdir=/Applications"
+Rake::TaskManager.record_task_metadata = true
 
 def brew_install(package, *args)
   versions = `brew list #{package} --versions`
@@ -125,208 +126,6 @@ def unlink_file(original_filename, symlink_filename)
   end
 end
 
-namespace :install do
-  desc "Update or Install Brew"
-  task :brew do
-    step 'Homebrew'
-    unless system('which brew > /dev/null || ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"')
-      raise "Homebrew must be installed before continuing."
-    end
-  end
-
-  desc "Install Homebrew Cask"
-  task :brew_cask do
-    step "Homebrew Cask"
-    system "brew", "untap", "phinze/cask" if system %Q{brew tap | grep phinze/cask > /dev/null}
-    brew_tap "caskroom/cask"
-  end
-
-  desc "Install The Silver Searcher"
-  task :the_silver_searcher do
-    step "the_silver_searcher"
-    brew_install "the_silver_searcher"
-  end
-
-  desc "Install reattach-to-user-namespace"
-  task :reattach_to_user_namespace do
-    step "reattach-to-user-namespace"
-    brew_install "reattach-to-user-namespace"
-  end
-
-  desc "Install tmux"
-  task :tmux do
-    step "tmux"
-    # tmux copy-pipe function needs tmux >= 1.8
-    brew_install "tmux", :requires => ">= 2.1"
-  end
-
-  desc "Install Git"
-  task :git do
-    step "git"
-    brew_install "git"
-  end
-
-  desc "Install vim"
-  task :vim do
-    step "vim"
-    brew_install "vim", "--with-override-system-vi"
-  end
-
-  desc "Install Vundle"
-  task :vundle do
-    step "vundle"
-    install_github_bundle "VundleVim", "Vundle.vim"
-    sh "/usr/local/bin/vim", '-c', "PluginInstall!", "-c", "q", "-c", "q"
-  end
-
-  desc "Install Fish"
-  task :fish do
-    step "Fish"
-    brew_install "fish", :requires => ">= 2.3"
-    brew_tap "fisherman/tap"
-    brew_install "fisherman"
-    puts "Changing Default Shell"
-    unless IO.readlines("/etc/shells").any? /^#{Regexp.quote("/usr/local/bin/fish")}$/
-      sh "sudo", "sh", "-c", "echo '\n/usr/local/bin/fish\n' >> /etc/shells"
-    end
-    sh "chsh", "-s", "/usr/local/bin/fish" unless ENV["SHELL"] == "/usr/local/bin/fish"
-    sh "/usr/local/bin/fish", "-c", "fisher"
-  end
-
-  desc "Install Direnv"
-  task :direnv do
-    step "Direnv"
-    brew_install "direnv"
-  end
-
-  desc "Install Dnsmasq"
-  task :dnsmasq do
-    step "Dnsmasq"
-    brew_install "dnsmasq"
-    brew_tap "homebrew/services"
-    unless Dir.exists?("/etc/resolver") && `brew services list`.match(/^dnsmasq\s+started/)
-      puts "Create /etc/resolver and start service"
-      sh "sudo", "mkdir", "-p", "/etc/resolver" unless Dir.exists? "/etc/resolver"
-      sh "sudo", "brew", "services", "start", "dnsmasq" unless `brew services list`.match /^dnsmasq\s+started/
-    end
-  end
-
-  desc "Install Docker"
-  task :docker do
-    step "Docker"
-    brew_install "docker"
-    brew_install "docker-compose"
-    brew_cask_install "docker"
-  end
-
-  desc "Install PHP"
-  task :php do
-    step "PHP"
-    brew_install "php@7.0"
-    brew_install "php@7.1"
-    brew_install "php"
-    brew_install "composer"
-
-    sh "composer", "global", "install"
-  end
-
-  desc "Install Vagrant"
-  task :vagrant do
-    step "Vagrant"
-    brew_cask_install "vagrant"
-  end
-
-  desc "Install VirtualBox"
-  task :virtualbox do
-    step "VirtaulBox"
-    brew_cask_install "virtualbox"
-  end
-
-  desc "Install Node"
-  task :node do
-    step "Node.js"
-    brew_install "node"
-    brew_install "nvm"
-    brew_install "yarn"
-  end
-
-  desc "Install Ruby"
-  task :ruby do
-    step "Ruby"
-    brew_install "ruby"
-    brew_install "rbenv"
-    brew_install "ruby-build"
-  end
-
-  desc "Install Peco"
-  task :peco do
-    step "Peco"
-    brew_install "peco"
-  end
-
-  desc "Install The Fuck"
-  task :thefuck do
-    step "The Fuck"
-    brew_install "thefuck"
-  end
-
-  desc "Install Httpie"
-  task :httpie do
-    step "Httpie"
-    brew_install "httpie"
-  end
-
-  desc "Install Fzf"
-  task :fzf do
-    step "Fzf"
-    brew_install "fzf"
-  end
-
-  desc "Install Hub"
-  task :hub do
-    step "Hub"
-    brew_install "hub"
-  end
-
-  desc "Install Grc"
-  task :grc do
-    step "Grc"
-    brew_install "grc"
-  end
-
-  desc "Install Brew Command Not Found"
-  task :command_not_found do
-    step "Brew Command Not Found"
-    brew_tap "homebrew/command-not-found"
-  end
-
-  desc "Load Launchd Agent & Daemon"
-  task :launchd do
-    step "Launchd Agents & Daemons"
-    unless File.exists? "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
-      puts "Copy SetMotd Launch Daemon"
-      sh "sudo", "cp", __dir__ + "/net.listfeeder.SetMotd.plist", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
-    end
-
-    puts "Load SetMotd Launch Daemon"
-    sh "sudo", "launchctl", "list", "net.listfeeder.SetMotd" do |ok, res|
-      unless ok
-        sh "sudo", "launchctl", "load", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
-      end
-    end
-
-    sh "launchctl", "list", "net.listfeeder.UpdateBrew" do |ok, res|
-      unless ok
-        sh "launchctl", "load", Dir.home + "/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist"
-      end
-    end
-  end
-
-  # TODO: Add stuff about motd launch daemon (if I can remember the syntax for all that junk)
-  # download vagrant setup?
-  # Vagrant plugins
-end
-
 def filemap(map)
   map.inject({}) do |result, (key, value)|
     result[File.expand_path(key)] = File.expand_path(value)
@@ -348,59 +147,203 @@ LINKED_FILES = filemap(
   "tmux.conf"                       => "~/.tmux.conf",
   "vimrc"                           => "~/.vimrc",
   "vimrc.bundles"                   => "~/.vimrc.bundles",
-  "net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist"
+  "net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist",
   "docker.fish"                     => "~/.config/fish/completions/docker.fish"
 )
 
-desc "Install these config files."
-task :install do
-  Rake::Task["install:brew"].invoke
-  Rake::Task["install:brew_cask"].invoke
-  Rake::Task["install:git"].invoke
-  Rake::Task["install:the_silver_searcher"].invoke
-  Rake::Task["install:reattach_to_user_namespace"].invoke
-  Rake::Task["install:tmux"].invoke
-  Rake::Task["install:vim"].invoke
-  Rake::Task["install:direnv"].invoke
-  Rake::Task["install:dnsmasq"].invoke
-  Rake::Task["install:docker"].invoke
-  Rake::Task["install:vagrant"].invoke
-  # Rake::Task["install:virtualbox"].invoke ## This bombs out in our test VM until you unblock its extension
-  Rake::Task["install:node"].invoke
-  Rake::Task["install:ruby"].invoke
-  Rake::Task["install:peco"].invoke
-  Rake::Task["install:thefuck"].invoke
-  Rake::Task["install:httpie"].invoke
-  Rake::Task["install:fzf"].invoke
-  Rake::Task["install:hub"].invoke
-  Rake::Task["install:grc"].invoke
-  Rake::Task["install:command_not_found"].invoke
+SUDOERS_FILES = filemap(
+  "sudoers_dnsmasq"     => "/etc/sudoers.d/dnsmasq",
+  "sudoers_vagrant_nfs" => "/etc/sudoers.d/vagrant_nfs"
+)
 
-  step "symlink"
-  LINKED_FILES.each do |orig, link|
-    link_file orig, link
+HOMEBREW_PACKAGES = [
+  "the_silver_searcher",
+  "reattach-to-user-namespace",
+  ["tmux", :requires => ">= 2.1"],
+  "git",
+  ["vim", "--with-override-system-vi"],
+  ["fish", :requires => ">= 2.3"],
+  "fisherman",
+  "direnv",
+  "dnsmasq",
+  "docker",
+  "docker-compose",
+  "php@7.0",
+  "php@7.1",
+  "php",
+  "composer",
+  "node",
+  "nvm",
+  "yarn",
+  "ruby",
+  "rbenv",
+  "ruby-build",
+  "peco",
+  "thefuck",
+  "httpie",
+  "fzf",
+  "hub",
+  "grc",
+]
+
+HOMEBREW_TAPS = [
+  "caskroom/cask",
+  "fisherman/tap",
+  "homebrew/services",
+  "homebrew/command-not-found",
+]
+
+CASK_PACKAGES = [
+  "docker",
+  "vagrant",
+  "virtualbox",
+]
+
+namespace :install do
+  desc "Update or Install Brew"
+  task :brew do |task|
+    step task.comment
+    unless system('which brew > /dev/null || ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"')
+      raise "Homebrew must be installed before continuing."
+    end
   end
 
-  COPIED_FILES.each do |orig, copy|
-    parent = File.dirname copy
-    mkdir_p parent unless File.exists? parent
-
-    cp orig, copy, :verbose => true unless File.exist? copy
+  desc "Remove Old Cask Tap"
+  task :cask_tap do |task|
+    step task.comment
+    system "brew", "untap", "phinze/cask" if system %Q{brew tap | grep phinze/cask > /dev/null}
   end
 
-  # Install Vundle and bundles
-  Rake::Task["install:vundle"].invoke
-  Rake::Task["install:fish"].invoke
-  Rake::Task["install:php"].invoke
-  Rake::Task["install:launchd"].invoke
+  desc "Install Homebrew Packages"
+  task :homebrew_packages => [:homebrew_taps] do |task|
+    step task.comment
+    HOMEBREW_PACKAGES.each do |package|
+      package_name = package.is_a?(Array) ? package.first : package
+      puts " - #{package_name}"
+      method(:brew_install).call(*package)
+    end
+  end
 
+  desc "Add Homebrew Taps"
+  task :homebrew_taps => [:brew, :cask_tap] do |task|
+    step task.comment
+    HOMEBREW_TAPS.each do |tap|
+      puts " - #{tap}"
+      brew_tap tap
+    end
+  end
+
+  desc "Install Homebrew Casks"
+  task :homebrew_casks => [:homebrew_taps] do |task|
+    step task.comment
+    CASK_PACKAGES.each do |package|
+      puts " - #{package}"
+      brew_cask_install package
+    end
+  end
+
+  desc "Copy Default Files"
+  task :copy_files do |task|
+    step task.comment
+    COPIED_FILES.each do |orig, copy|
+      puts " - #{copy}"
+      parent = File.dirname copy
+      mkdir_p parent unless File.exists? parent
+
+      cp orig, copy, :verbose => true unless File.exist? copy
+    end
+  end
+
+  desc "Link Static Files"
+  task :link_files do |task|
+    step task.comment
+    LINKED_FILES.each do |orig, link|
+      puts " - #{link}"
+      link_file orig, link
+    end
+  end
+
+  desc "Install Vundle"
+  task :vundle => [:homebrew_packages] do |task|
+    step task.comment
+    install_github_bundle "VundleVim", "Vundle.vim"
+    sh "/usr/local/bin/vim", '-c', "PluginInstall!", "-c", "q", "-c", "q"
+  end
+
+  desc "Setup Fish Friendly Interactive Shell"
+  task :fish => [:homebrew_packages, :copy_files, :link_files] do |task|
+    step task.comment
+    puts "Changing Default Shell"
+    unless IO.readlines("/etc/shells").any? /^#{Regexp.quote("/usr/local/bin/fish")}$/
+      sh "sudo", "sh", "-c", "echo '\n/usr/local/bin/fish\n' >> /etc/shells"
+    end
+    sh "chsh", "-s", "/usr/local/bin/fish" unless ENV["SHELL"] == "/usr/local/bin/fish"
+    sh "/usr/local/bin/fish", "-c", "fisher"
+  end
+
+  desc "Configure Dnsmasq"
+  task :dnsmasq => [:homebrew_packages, :homebrew_taps] do |task|
+    step task.comment
+    unless Dir.exists?("/etc/resolver") && `brew services list`.match(/^dnsmasq\s+started/)
+      puts "Create /etc/resolver and start service"
+      sh "sudo", "mkdir", "-p", "/etc/resolver" unless Dir.exists? "/etc/resolver"
+      sh "sudo", "brew", "services", "start", "dnsmasq" unless `brew services list`.match /^dnsmasq\s+started/
+    end
+  end
+
+  desc "Install Composer Dependencies"
+  task :composer => [:homebrew_packages, :copy_files] do |task|
+    step task.comment
+    sh "composer", "global", "install"
+  end
+
+  desc "Load Launchd Agent & Daemon"
+  task :launchd => [:link_files, :brew] do |task|
+    step task.comment
+    unless File.exists? "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
+      puts "Copy SetMotd Launch Daemon"
+      sh "sudo", "cp", __dir__ + "/net.listfeeder.SetMotd.plist", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
+    end
+
+    puts "Load SetMotd Launch Daemon"
+    unless system "sudo launchctl list net.listfeeder.SetMotd > /dev/null"
+      sh "sudo", "launchctl", "load", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
+    end
+
+    unless system "launchctl list net.listfeeder.UpdateBrew > /dev/null"
+      sh "launchctl", "load", Dir.home + "/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist"
+    end
+  end
+
+  # TODO: download vagrant setup?
+  # Vagrant plugins
+  # sudoers method: visudo -cf [file]; cp file to path; chmod 440; chown root:wheel
+
+  task :all => [
+    :brew,
+    :cask_tap,
+    :homebrew_taps,
+    :homebrew_packages,
+    :homebrew_casks,
+    :copy_files,
+    :link_files,
+    :vundle,
+    :fish,
+    :dnsmasq,
+    :composer,
+    :launchd
+  ]
+end
+
+desc "Maximize your awesome"
+task :install => :"install:all" do
   step "Finished!"
   puts
   puts "  Enjoy!"
   puts
 end
 
-desc "Uninstall these config files."
+desc "Minimize your awesome"
 task :uninstall do
   step "un-symlink"
 
