@@ -404,7 +404,6 @@ namespace :install do
   end
 
   # TODO: download vagrant setup?
-  # Vagrant plugins
 
   task :all => [
     :brew,
