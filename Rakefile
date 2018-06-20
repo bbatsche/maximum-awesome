@@ -151,11 +151,6 @@ LINKED_FILES = filemap(
   "docker.fish"                     => "~/.config/fish/completions/docker.fish"
 )
 
-SUDOERS_FILES = filemap(
-  "sudoers_dnsmasq"     => "/etc/sudoers.d/dnsmasq",
-  "sudoers_vagrant_nfs" => "/etc/sudoers.d/vagrant_nfs"
-)
-
 HOMEBREW_PACKAGES = [
   "the_silver_searcher",
   "reattach-to-user-namespace",
@@ -184,6 +179,12 @@ HOMEBREW_PACKAGES = [
   "fzf",
   "hub",
   "grc",
+  "python",
+]
+
+PIP_PACKAGES = [
+  "ansible",
+  "bumpversion",
 ]
 
 HOMEBREW_TAPS = [
@@ -239,6 +240,18 @@ namespace :install do
     CASK_PACKAGES.each do |package|
       puts " - #{package}"
       brew_cask_install package
+    end
+  end
+
+  desc "Install PIP Packages"
+  task :pip => [:homebrew_packages] do |task|
+    step task.comment
+    pip = "/usr/local/opt/python/libexec/bin/pip"
+    PIP_PACKAGES.each do |package|
+      puts " - #{package}"
+      unless system "#{pip} show #{package} > /dev/null"
+        sh pip, "install", package
+      end
     end
   end
 
@@ -315,9 +328,26 @@ namespace :install do
     end
   end
 
+  desc "Install Sudoers File For Vagrant"
+  task :sudoers do |task|
+    step task.comment
+    file = __dir__ + "/sudoers_vagrant"
+    unless system "visudo -cf #{file} > /dev/null"
+      puts "Sudoers file failed validation; skipping!"
+      return
+    end
+
+    unless File.exists? "/etc/sudoers.d/vagrant"
+      puts "Copy Sudoers File"
+      sh "sudo", "cp", file, "/etc/sudoers.d/vagrant"
+      sh "sudo", "chown", "root:wheel", "/etc/sudoers.d/vagrant"
+      sh "sudo", "chmod", "440", "/etc/sudoers.d/vagrant"
+    end
+  end
+
   # TODO: download vagrant setup?
   # Vagrant plugins
-  # sudoers method: visudo -cf [file]; cp file to path; chmod 440; chown root:wheel
+  # curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
 
   task :all => [
     :brew,
@@ -325,13 +355,15 @@ namespace :install do
     :homebrew_taps,
     :homebrew_packages,
     :homebrew_casks,
+    :pip,
     :copy_files,
     :link_files,
     :vundle,
     :fish,
     :dnsmasq,
     :composer,
-    :launchd
+    :launchd,
+    :sudoers,
   ]
 end
 
