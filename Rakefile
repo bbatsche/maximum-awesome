@@ -1,3 +1,6 @@
+require "etc"
+require "socket"
+
 ENV['HOMEBREW_CASK_OPTS'] = "--appdir=/Applications"
 Rake::TaskManager.record_task_metadata = true
 
@@ -144,6 +147,7 @@ COPIED_FILES = filemap(
   "composer.json"       => "~/.composer/composer.json",
   "fishfile"            => "~/.config/fish/fishfile",
   "motd.sh"             => "/usr/local/bin/motd.sh",
+  "ssh_config"          => "~/.ssh/config",
 )
 
 LINKED_FILES = filemap(
@@ -378,6 +382,27 @@ namespace :install do
     end
   end
 
+  desc "Generate SSH Key"
+  task :ssh_key => [:copy_files] do |task|
+    step task.comment
+
+    unless File.exists?(File.expand_path "~/.ssh/id_rsa") && File.exists?(File.expand_path "~/.ssh/id_rsa.pub")
+      default_user = Etc.getlogin
+      default_host = Socket.gethostname
+
+      print "Username (default \"#{default_user}\"): "
+      input_user = STDIN.gets.strip
+
+      print "Hostname (default \"#{default_host}\"): "
+      input_host = STDIN.gets.strip
+
+      user = input_user.empty? ? default_user : input_user
+      host = input_host.empty? ? default_host : input_host
+
+      sh "ssh-keygen", "-t", "rsa", "-b", "4096", "-N", "", "-C", "#{user}@#{host}", "-f", File.expand_path("~/.ssh/id_rsa")
+    end
+  end
+
   # TODO: download vagrant setup?
   # Vagrant plugins
 
@@ -396,6 +421,7 @@ namespace :install do
     :vagrant_plugins,
     :composer,
     :iterm,
+    :ssh_key,
     :launchd,
     :sudoers,
   ]
