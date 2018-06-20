@@ -345,9 +345,17 @@ namespace :install do
     end
   end
 
+  desc "Install iTerm Integration"
+  task :iterm => [:fish] do |task|
+    step task.comment
+
+    unless File.exists? File.expand_path("~/.iterm2_shell_integration.fish")
+      sh "curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash"
+    end
+  end
+
   # TODO: download vagrant setup?
   # Vagrant plugins
-  # curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
 
   task :all => [
     :brew,
@@ -362,6 +370,7 @@ namespace :install do
     :fish,
     :dnsmasq,
     :composer,
+    :iterm,
     :launchd,
     :sudoers,
   ]
