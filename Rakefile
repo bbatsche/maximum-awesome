@@ -41,7 +41,7 @@ end
 
 def install_github_bundle(user, package)
   unless File.exist? File.expand_path("~/.vim/bundle/#{package}")
-    sh "git", "clone", "https://github.com/#{user}/#{package}", "~/.vim/bundle/#{package}"
+    sh "git", "clone", "https://github.com/#{user}/#{package}", File.expand_path("~/.vim/bundle/#{package}")
   end
 end
 
@@ -148,6 +148,7 @@ COPIED_FILES = filemap(
   "fishfile"            => "~/.config/fish/fishfile",
   "motd.sh"             => "/usr/local/bin/motd.sh",
   "ssh_config"          => "~/.ssh/config",
+  "tm_properties"       => "~/.tm_properties",
 )
 
 LINKED_FILES = filemap(
@@ -156,7 +157,7 @@ LINKED_FILES = filemap(
   "vimrc"                           => "~/.vimrc",
   "vimrc.bundles"                   => "~/.vimrc.bundles",
   "net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist",
-  "docker.fish"                     => "~/.config/fish/completions/docker.fish"
+  "docker.fish"                     => "~/.config/fish/completions/docker.fish",
 )
 
 HOMEBREW_PACKAGES = [
@@ -311,7 +312,7 @@ namespace :install do
   task :fish => [:homebrew_packages, :copy_files, :link_files] do |task|
     step task.comment
     puts "Changing Default Shell"
-    unless IO.readlines("/etc/shells").any? /^#{Regexp.quote("/usr/local/bin/fish")}$/
+    if IO.readlines("/etc/shells").grep(/^#{Regexp.quote("/usr/local/bin/fish")}$/).empty?
       sh "sudo", "sh", "-c", "echo '\n/usr/local/bin/fish\n' >> /etc/shells"
     end
     sh "chsh", "-s", "/usr/local/bin/fish" unless ENV["SHELL"] == "/usr/local/bin/fish"

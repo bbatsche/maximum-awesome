@@ -1,0 +1,126 @@
+showInvisibles   = true
+showWrapColumn   = true
+softTabs         = true
+softWrap         = false
+spellChecking    = false
+tabSize          = 4
+wrapColumn       = 120
+
+# Add these files to the project view:
+myExtraIncludes = ".tm_properties,.gitignore,.hgignore,.htaccess,.env,.env.*,.htaccess,.htpasswd,.travis.yml,.rbenv*,.ruby*,.bumpversion.cfg,.ansiblespec,.rspec,.bowerrc,.php_cs,.editorconfig,.gitattributes,.docker,.babelrc,.blackfire.yml,.htaccess.sample,.magento,.magento*,.php_cs.dist,.user.ini,.envrc,.php-version,.phpenv-version"
+fileBrowserGlob = "{*,$myExtraIncludes}"
+include = "{$include,$myExtraIncludes}"
+
+# Hide these files from the search dialog:
+myExtraExcludes = "log,vendor,tmp,*.sqlite3,node_modules,storage,bower_components"
+excludeInFileChooser  = "{$excludeInFileChooser,$myExtraExcludes}"
+excludeInFolderSearch = "{$excludeInFolderSearch,$myExtraExcludes}"
+
+invisiblesMap = "~ \t║"
+
+[ attr.file.unknown-type ]
+fileType         = text.plain
+
+[ attr.untitled ]
+fileType         = text.html.markdown
+
+[ text.plain ]
+showInvisibles = false
+spellChecking = true
+
+[ .bookignore ]
+fileType         = source.git-config
+
+[ "{Puppetfile,VagrantFile}" ]
+fileType         = source.ruby
+
+[ "{.editorconfig,.bumversion.cfg,ansible.cfg}" ]
+fileType         = source.ini
+
+[ hosts ]
+fileType         = source.ini
+
+[ *.yml ]
+fileType = source.yaml
+
+[ *.c ]
+fileType         = source.c
+
+[ *.css ]
+fileType         = source.css
+tabsize = 2
+
+[ *.dump ]
+fileType         = source.sql
+
+[ *.html ]
+fileType         = text.html.basic
+
+[ *.j2 ]
+fileType         = source.jinja
+
+[ *.js ]
+fileType         = source.js.jquery
+tabsize = 2
+
+[ *.load ]
+fileType         = source.fish
+
+[ *.lock ]
+fileType         = source.json
+
+[ *.md ]
+fileType         = text.html.markdown
+softWrap         = true
+
+[ *.pp ]
+fileType         = source.ruby
+
+[ *.s ]
+fileType         = source.mips
+
+[ *.xib ]
+fileType         = text.xml
+
+[ *.zep ]
+fileType         = source.zephir
+
+[ *.{cfg,cnf,cfg.default,cnf.j2,ini.j2} ]
+fileType         = source.ini
+
+[ "*.{com,location.conf}" ]
+fileType         = source.nginx
+
+[ "*.{hh,php,php.bak,php.default,php.template}" ]
+fileType         = text.html.php
+
+[ *.blade.php ]
+fileType         = text.html.php.laravel-blade
+tabSize = 2
+
+[ .env.*.php ]
+fileType = text.html.php
+
+[ source.ruby ]
+tabSize = 2
+
+[ source.yaml ]
+tabSize          = 2
+
+[ source.scss ]
+tabSize = 2
+
+[ text ]
+spellChecking    = true
+
+[ text.html.php ]
+spellChecking    = false
+
+[ text.html.php.laravel-blade ]
+spellChecking = true
+
+[ text.xml.plist ]
+softTabs         = false
+
+[ text.tm-snippet ]
+softTabs         = false
