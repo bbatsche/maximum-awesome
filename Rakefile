@@ -206,7 +206,8 @@ HOMEBREW_TAPS = [
 CASK_PACKAGES = [
   "docker",
   "vagrant",
-  "virtualbox",
+  # "virtualbox", ## Nope, still crashes the process. Need to run manually.
+  "growlnotify",
 ]
 
 VAGRANT_PLUGINS = [
