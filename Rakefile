@@ -208,12 +208,14 @@ CASK_PACKAGES = [
   "vagrant",
   # "virtualbox", ## Nope, still crashes the process. Need to run manually.
   "growlnotify",
+  "1password-cli",
+  "vagrant-vmware-utility",
 ]
 
 VAGRANT_PLUGINS = [
   "vagrant-dnsmasq",
   "vagrant-vbguest",
-  "vagrant-vmware-fusion",
+  "vagrant-vmware-desktop",
   "vagrant-pristine",
 ]
 
