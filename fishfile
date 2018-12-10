@@ -1,11 +1,14 @@
 bbatsche/BeBat-Fish-Defaults
 bbatsche/Fish-Prompt-BeBat
+danhper/fish-ssh-agent
 edc/bass
-fisherman/ansible-completion
-fisherman/nvm
+FabioAntunes/fish-nvm
 fishgretel/pkg-fzf
+franciscolourenco/done
+laughedelic/brew-completions
 laughedelic/pisces
 lfiolhais/plugin-homebrew-command-not-found
+oh-my-fish/plugin-aws
 oh-my-fish/plugin-bak
 oh-my-fish/plugin-brew
 oh-my-fish/plugin-bundler

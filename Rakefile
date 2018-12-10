@@ -189,6 +189,8 @@ HOMEBREW_PACKAGES = [
   "hub",
   "grc",
   "python",
+  "wget",
+  "awscli",
 ]
 
 PIP_PACKAGES = [
