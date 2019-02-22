@@ -4,21 +4,16 @@ require "socket"
 ENV['HOMEBREW_CASK_OPTS'] = "--appdir=/Applications"
 Rake::TaskManager.record_task_metadata = true
 
-def brew_install(package, *args)
-  versions = `brew list #{package} --versions`
-  options = args.last.is_a?(Hash) ? args.pop : {}
+def brew_install_all(packages)
+  packages = packages.select { |pkg| `brew list #{pkg} --versions`.empty? }
 
-  # if brew exits with error we install tmux
-  if versions.empty?
-    sh "brew", "install", package, *args
-  elsif options[:requires]
-    # brew did not error out, verify tmux is greater than 1.8
-    # e.g. brew_tmux_query = 'tmux 1.9a'
-    installed_version = versions.split(/\n/).first.split(' ').last
-    unless version_match?(options[:requires], installed_version)
-      sh "brew", "upgrade", package, args
-    end
-  end
+  sh "brew", "install", *packages unless packages.empty?
+end
+
+def brew_install_single(package, *args)
+  versions = `brew list #{package} --versions`
+
+  sh "brew", "install", package, *args if versions.empty?
 end
 
 def brew_tap(tap)
@@ -40,9 +35,11 @@ def version_match?(requirement, version)
 end
 
 def install_github_bundle(user, package)
-  unless File.exist? File.expand_path("~/.vim/bundle/#{package}")
-    sh "git", "clone", "https://github.com/#{user}/#{package}", File.expand_path("~/.vim/bundle/#{package}")
-  end
+  git_clone "https://github.com/#{user}/#{package}", "~/.vim/bundle/#{package}"
+end
+
+def git_clone(url, path)
+  sh "git", "clone", url, File.expand_path(path) unless File.exist? File.expand_path(path)
 end
 
 def brew_cask_install(package, *options)
@@ -145,7 +142,6 @@ COPIED_FILES = filemap(
   "vimrc.bundles.local" => "~/.vimrc.bundles.local",
   "tmux.conf.local"     => "~/.tmux.conf.local",
   "composer.json"       => "~/.composer/composer.json",
-  "fishfile"            => "~/.config/fish/fishfile",
   "motd.sh"             => "/usr/local/bin/motd.sh",
   "ssh_config"          => "~/.ssh/config",
   "tm_properties"       => "~/.tm_properties",
@@ -157,40 +153,45 @@ LINKED_FILES = filemap(
   "vimrc"                           => "~/.vimrc",
   "vimrc.bundles"                   => "~/.vimrc.bundles",
   "net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist",
-  "docker.fish"                     => "~/.config/fish/completions/docker.fish",
+  "/usr/local/etc/grc.fish"         => "~/.config/fish/conf.d/grc.fish",
 )
 
 HOMEBREW_PACKAGES = [
-  "the_silver_searcher",
-  "reattach-to-user-namespace",
-  ["tmux", :requires => ">= 2.1"],
-  "git",
-  ["vim", "--with-override-system-vi"],
-  ["fish", :requires => ">= 2.3"],
-  "fisherman",
+  "awscli",
+  "composer",
   "direnv",
   "dnsmasq",
   "docker",
   "docker-compose",
-  "php@7.0",
-  "php@7.1",
-  "php",
-  "composer",
+  "drone",
+  "fish",
+  "fisherman",
+  "fzf",
+  "git",
+  "grc",
+  "httpie",
+  "hub",
   "node",
   "nvm",
-  "yarn",
-  "ruby",
-  "rbenv",
-  "ruby-build",
   "peco",
-  "thefuck",
-  "httpie",
-  "fzf",
-  "hub",
-  "grc",
+  "php",
+  "php@7.0",
+  "php@7.1",
+  "php@7.2",
+  "pstree",
   "python",
+  "rbenv",
+  "reattach-to-user-namespace",
+  "ruby",
+  "ruby-build",
+  "terminal-notifier",
+  "thefuck",
+  "the_silver_searcher",
+  "tmux",
+  "webp",
   "wget",
-  "awscli",
+  "vim",
+  "yarn",
 ]
 
 PIP_PACKAGES = [
@@ -199,19 +200,29 @@ PIP_PACKAGES = [
 ]
 
 HOMEBREW_TAPS = [
-  "caskroom/cask",
-  "fisherman/tap",
+  "bbatsche/fisher",
+  "drone/drone",
+  "exolnet/deprecated",
+  "homebrew/cask",
   "homebrew/services",
   "homebrew/command-not-found",
 ]
 
+DEPRECATED_TAPS = [
+  "caskroom/cask",
+  "fisherman/tap",
+  "phinze/cask",
+]
+
 CASK_PACKAGES = [
-  "docker",
-  "vagrant",
-  # "virtualbox", ## Nope, still crashes the process. Need to run manually.
-  "growlnotify",
   "1password-cli",
+  "docker",
+  "growlnotify",
+  "java",
+  "vagrant",
   "vagrant-vmware-utility",
+  "webpquicklook",
+  # "virtualbox", ## Nope, still crashes the process. Need to run manually.
 ]
 
 VAGRANT_PLUGINS = [
@@ -219,6 +230,43 @@ VAGRANT_PLUGINS = [
   "vagrant-vbguest",
   "vagrant-vmware-desktop",
   "vagrant-pristine",
+]
+
+GITHUB_REPOS = {
+  "bbatsche/BeBat-Fish-Defaults" => "~/Repos/Fish-Defaults",
+  "bbatsche/Fish-Prompt-BeBat" => "~/Repos/Fish-Prompt",
+  "bbatsche/Vagrant-Setup" => "~/Vagrant",
+}
+
+FISHER_PLUGINS = [
+  "danhper/fish-ssh-agent",
+  "edc/bass",
+  "FabioAntunes/fish-nvm",
+  "fishgretel/pkg-fzf",
+  "franciscolourenco/done",
+  "laughedelic/brew-completions",
+  "laughedelic/pisces",
+  "lfiolhais/plugin-homebrew-command-not-found",
+  "oh-my-fish/plugin-aws",
+  "oh-my-fish/plugin-bak",
+  "oh-my-fish/plugin-brew",
+  "oh-my-fish/plugin-bundler",
+  "oh-my-fish/plugin-composer",
+  "oh-my-fish/plugin-direnv",
+  "oh-my-fish/plugin-extract",
+  "oh-my-fish/plugin-gem",
+  "oh-my-fish/plugin-gityaw",
+  "oh-my-fish/plugin-hash",
+  "oh-my-fish/plugin-osx",
+  "oh-my-fish/plugin-peco",
+  "oh-my-fish/plugin-rbenv",
+  "oh-my-fish/plugin-tab",
+  "oh-my-fish/plugin-thefuck",
+  "oh-my-fish/plugin-tmux",
+  "rominf/omf-plugin-hub",
+  "spacekookie/omf-color-manual",
+  "~/Repos/Fish-Defaults",
+  "~/Repos/Fish-Prompt",
 ]
 
 namespace :install do
@@ -230,24 +278,23 @@ namespace :install do
     end
   end
 
-  desc "Remove Old Cask Tap"
-  task :cask_tap do |task|
+  desc "Remove Old Taps"
+  task :deprecated_taps => [:brew] do |task|
     step task.comment
-    system "brew", "untap", "phinze/cask" if system %Q{brew tap | grep phinze/cask > /dev/null}
+    DEPRECATED_TAPS.each do |tap|
+      puts " - #{tap}"
+      system "brew", "untap", tap if system %Q{brew tap | grep #{tap} > /dev/null}
+    end
   end
 
   desc "Install Homebrew Packages"
   task :homebrew_packages => [:homebrew_taps] do |task|
     step task.comment
-    HOMEBREW_PACKAGES.each do |package|
-      package_name = package.is_a?(Array) ? package.first : package
-      puts " - #{package_name}"
-      method(:brew_install).call(*package)
-    end
+    brew_install_all HOMEBREW_PACKAGES
   end
 
   desc "Add Homebrew Taps"
-  task :homebrew_taps => [:brew, :cask_tap] do |task|
+  task :homebrew_taps => [:brew, :deprecated_taps] do |task|
     step task.comment
     HOMEBREW_TAPS.each do |tap|
       puts " - #{tap}"
@@ -277,7 +324,7 @@ namespace :install do
   end
 
   desc "Install Vagrant Plugins"
-  task :vagrant_plugins => [:homebrew_casks, :homebrew_packages] do |task|
+  task :vagrant_plugins => [:homebrew_casks, :homebrew_packages, :dnsmasq] do |task|
     step task.comment
     VAGRANT_PLUGINS.each do |plugin|
       puts " - #{plugin}"
@@ -314,14 +361,16 @@ namespace :install do
   end
 
   desc "Setup Fish Friendly Interactive Shell"
-  task :fish => [:homebrew_packages, :copy_files, :link_files] do |task|
+  task :fish => [:homebrew_packages, :copy_files, :link_files, :git_clone] do |task|
     step task.comment
     puts "Changing Default Shell"
     if IO.readlines("/etc/shells").grep(/^#{Regexp.quote("/usr/local/bin/fish")}$/).empty?
       sh "sudo", "sh", "-c", "echo '\n/usr/local/bin/fish\n' >> /etc/shells"
     end
     sh "chsh", "-s", "/usr/local/bin/fish" unless ENV["SHELL"] == "/usr/local/bin/fish"
-    sh "/usr/local/bin/fish", "-c", "fisher"
+
+    cmd = ["fisher", "add"] | FISHER_PLUGINS
+    sh "/usr/local/bin/fish", "-c", cmd.join(" ")
   end
 
   desc "Configure Dnsmasq"
@@ -405,16 +454,22 @@ namespace :install do
       user = input_user.empty? ? default_user : input_user
       host = input_host.empty? ? default_host : input_host
 
-      sh "ssh-keygen", "-t", "rsa", "-b", "4096", "-N", "", "-C", "#{user}@#{host}", "-f", File.expand_path("~/.ssh/id_rsa")
+      sh "ssh-keygen", "-t", "rsa", "-b", "4096", "-C", "#{user}@#{host}", "-f", File.expand_path("~/.ssh/id_rsa")
     end
   end
 
-  # TODO: download vagrant setup?
+  desc "Clone Repositories"
+  task :git_clone => [:homebrew_packages] do |task|
+    step task.comment
+
+    GITHUB_REPOS.each do |repo, path|
+      puts " - #{repo}"
+
+      git_clone "https://github.com/#{repo}.git", path
+    end
+  end
 
   task :all => [
-    :brew,
-    :cask_tap,
-    :homebrew_taps,
     :homebrew_packages,
     :homebrew_casks,
     :pip,
@@ -422,7 +477,6 @@ namespace :install do
     :link_files,
     :vundle,
     :fish,
-    :dnsmasq,
     :vagrant_plugins,
     :composer,
     :iterm,

@@ -7,7 +7,7 @@ tabSize          = 4
 wrapColumn       = 120
 
 # Add these files to the project view:
-myExtraIncludes = ".tm_properties,.gitignore,.hgignore,.htaccess,.env,.env.*,.htaccess,.htpasswd,.travis.yml,.rbenv*,.ruby*,.bumpversion.cfg,.ansiblespec,.rspec,.bowerrc,.php_cs,.editorconfig,.gitattributes,.docker,.babelrc,.blackfire.yml,.htaccess.sample,.magento,.magento*,.php_cs.dist,.user.ini,.envrc,.php-version,.phpenv-version"
+myExtraIncludes = ".tm_properties,.gitignore,.hgignore,.htaccess,.env,.env.*,.htaccess,.htpasswd,.travis.yml,.rbenv*,.ruby*,.bumpversion.cfg,.ansiblespec,.rspec,.bowerrc,.php_cs,.editorconfig,.gitattributes,.docker,.babelrc,.blackfire.yml,.htaccess.sample,.magento,.magento*,.php_cs.dist,.user.ini,.envrc,.php-version,.phpenv-version,.bin"
 fileBrowserGlob = "{*,$myExtraIncludes}"
 include = "{$include,$myExtraIncludes}"
 
