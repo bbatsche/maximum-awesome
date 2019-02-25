@@ -441,7 +441,7 @@ namespace :install do
   task :ssh_key => [:copy_files] do |task|
     step task.comment
 
-    unless File.exists?(File.expand_path "~/.ssh/id_rsa") && File.exists?(File.expand_path "~/.ssh/id_rsa.pub")
+    unless File.exists?(File.expand_path "~/.ssh/id_ed25519)") && File.exists?(File.expand_path "~/.ssh/id_ed25519).pub")
       default_user = Etc.getlogin
       default_host = Socket.gethostname
 
@@ -454,7 +454,7 @@ namespace :install do
       user = input_user.empty? ? default_user : input_user
       host = input_host.empty? ? default_host : input_host
 
-      sh "ssh-keygen", "-t", "rsa", "-b", "4096", "-C", "#{user}@#{host}", "-f", File.expand_path("~/.ssh/id_rsa")
+      sh "ssh-keygen", "-t", "ed25519", "-a", "100", "-C", "#{user}@#{host}", "-f", File.expand_path("~/.ssh/id_ed25519)")
     end
   end
 
