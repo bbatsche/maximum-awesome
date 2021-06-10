@@ -43,10 +43,10 @@ def git_clone(url, path)
 end
 
 def brew_cask_install(package, *options)
-  output = `brew cask info #{package}`
+  output = `brew info --cask #{package}`
   return unless output.include?('Not installed')
 
-  sh "brew", "cask", "install", package, *options
+  sh "brew", "install", "--cask", package, *options
 end
 
 def step(description)
@@ -87,6 +87,8 @@ end
 def link_file(original_filename, symlink_filename)
   original_path = File.expand_path(original_filename)
   symlink_path = File.expand_path(symlink_filename)
+  parent = File.dirname symlink_path
+  mkdir_p parent unless File.exists? parent
   if File.exists?(symlink_path) || File.symlink?(symlink_path)
     if File.symlink?(symlink_path)
       symlink_points_to_path = File.readlink(symlink_path)
@@ -153,59 +155,81 @@ LINKED_FILES = filemap(
   "vimrc"                           => "~/.vimrc",
   "vimrc.bundles"                   => "~/.vimrc.bundles",
   "net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist",
-  "/usr/local/etc/grc.fish"         => "~/.config/fish/conf.d/grc.fish",
+  "conf.dockerps"                   => "~/.grc/conf.dockerps"
 )
 
 HOMEBREW_PACKAGES = [
   "awscli",
+  "bat",
   "composer",
+  "coreutils",
   "direnv",
   "dnsmasq",
-  "docker",
-  "docker-compose",
   "drone",
+  "exa",
   "fish",
   "fisherman",
-  "fzf",
+  "gh",
   "git",
+  "go",
   "grc",
+  "groovy",
+  "helm",
   "httpie",
   "hub",
+  "iperf3",
+  "jpeg",
+  "jq",
+  "kubernetes-cli",
+  "minikube",
+  "mutagen",
+  "mysql-client",
   "node",
   "nvm",
+  "openjdk",
   "peco",
   "php",
-  "php@7.0",
-  "php@7.1",
   "php@7.2",
+  "php@7.3",
+  "php@7.4",
   "pstree",
   "python",
   "rbenv",
+  "rbenv-bundle-exec",
+  "rbenv-vars",
   "reattach-to-user-namespace",
   "ruby",
   "ruby-build",
+  "svn",
   "terminal-notifier",
   "thefuck",
   "the_silver_searcher",
   "tmux",
+  "travis",
+  "unison",
+  "unrpyc",
+  "vim",
   "webp",
   "wget",
-  "vim",
   "yarn",
 ]
 
 PIP_PACKAGES = [
   "ansible",
   "bumpversion",
+  "unrpa",
 ]
 
 HOMEBREW_TAPS = [
-  "bbatsche/fisher",
+  "bbatsche/misc",
   "drone/drone",
-  "exolnet/deprecated",
+  "github/gh",
   "homebrew/cask",
-  "homebrew/services",
+  "homebrew/cask-fonts",
+  "homebrew/cask-versions",
   "homebrew/command-not-found",
+  "homebrew/services",
+  "mutagen-io/mutagen",
 ]
 
 DEPRECATED_TAPS = [
@@ -216,9 +240,15 @@ DEPRECATED_TAPS = [
 
 CASK_PACKAGES = [
   "1password-cli",
+  "adoptopenjdk",
   "docker",
+  "font-hasklig",
+  "font-hasklug-nerd-font",
+  "font-sauce-code-pro-nerd-font",
+  "font-source-code-pro",
   "growlnotify",
   "java",
+  "renpy",
   "vagrant",
   "vagrant-vmware-utility",
   "webpquicklook",
@@ -226,6 +256,8 @@ CASK_PACKAGES = [
 ]
 
 VAGRANT_PLUGINS = [
+  "vagrant-auto_network",
+  "vagrant-dns",
   "vagrant-dnsmasq",
   "vagrant-vbguest",
   "vagrant-vmware-desktop",
@@ -241,9 +273,15 @@ GITHUB_REPOS = {
 FISHER_PLUGINS = [
   "danhper/fish-ssh-agent",
   "edc/bass",
+  "evanlucas/fish-kubectl-completions",
   "FabioAntunes/fish-nvm",
-  "fishgretel/pkg-fzf",
   "franciscolourenco/done",
+  "halostatue/fish-direnv",
+  "halostatue/fish-docker",
+  "halostatue/fish-macos",
+  "halostatue/fish-rake",
+  "jorgebucaran/fisher",
+  "joseluisq/gitnow",
   "laughedelic/brew-completions",
   "laughedelic/pisces",
   "lfiolhais/plugin-homebrew-command-not-found",
@@ -252,28 +290,28 @@ FISHER_PLUGINS = [
   "oh-my-fish/plugin-brew",
   "oh-my-fish/plugin-bundler",
   "oh-my-fish/plugin-composer",
-  "oh-my-fish/plugin-direnv",
   "oh-my-fish/plugin-extract",
   "oh-my-fish/plugin-gem",
   "oh-my-fish/plugin-gityaw",
+  "oh-my-fish/plugin-grc",
   "oh-my-fish/plugin-hash",
-  "oh-my-fish/plugin-osx",
   "oh-my-fish/plugin-peco",
   "oh-my-fish/plugin-rbenv",
-  "oh-my-fish/plugin-tab",
   "oh-my-fish/plugin-thefuck",
   "oh-my-fish/plugin-tmux",
+  "oh-my-fish/plugin-virtualfish",
   "rominf/omf-plugin-hub",
   "spacekookie/omf-color-manual",
   "~/Repos/Fish-Defaults",
   "~/Repos/Fish-Prompt",
+  "~/Repos/plugin-tab",
 ]
 
 namespace :install do
   desc "Update or Install Brew"
   task :brew do |task|
     step task.comment
-    unless system('which brew > /dev/null || ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"')
+    unless system('which brew > /dev/null || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
       raise "Homebrew must be installed before continuing."
     end
   end
@@ -314,7 +352,7 @@ namespace :install do
   desc "Install PIP Packages"
   task :pip => [:homebrew_packages] do |task|
     step task.comment
-    pip = "/usr/local/opt/python/libexec/bin/pip"
+    pip = "/usr/local/bin/pip3"
     PIP_PACKAGES.each do |package|
       puts " - #{package}"
       unless system "#{pip} show #{package} > /dev/null"
@@ -369,14 +407,14 @@ namespace :install do
     end
     sh "chsh", "-s", "/usr/local/bin/fish" unless ENV["SHELL"] == "/usr/local/bin/fish"
 
-    cmd = ["fisher", "add"] | FISHER_PLUGINS
+    cmd = ["fisher", "install"] | FISHER_PLUGINS
     sh "/usr/local/bin/fish", "-c", cmd.join(" ")
   end
 
   desc "Configure Dnsmasq"
   task :dnsmasq => [:homebrew_packages, :homebrew_taps] do |task|
     step task.comment
-    unless Dir.exists?("/etc/resolver") && `brew services list`.match(/^dnsmasq\s+started/)
+    unless Dir.exists?("/etc/resolver") && `sudo brew services list`.match(/^dnsmasq\s+started/)
       puts "Create /etc/resolver and start service"
       sh "sudo", "mkdir", "-p", "/etc/resolver" unless Dir.exists? "/etc/resolver"
       sh "sudo", "brew", "services", "start", "dnsmasq" unless `brew services list`.match /^dnsmasq\s+started/
@@ -395,11 +433,11 @@ namespace :install do
     unless File.exists? "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
       puts "Copy SetMotd Launch Daemon"
       sh "sudo", "cp", __dir__ + "/net.listfeeder.SetMotd.plist", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
-    end
 
-    puts "Secure Motd Script"
-    sh "sudo", "chmod", "740", "/usr/local/bin/motd.sh"
-    sh "sudo", "chown", "root:wheel", "/usr/local/bin/motd.sh"
+      puts "Secure Motd Script"
+      sh "sudo", "chmod", "740", "/usr/local/bin/motd.sh"
+      sh "sudo", "chown", "root:wheel", "/usr/local/bin/motd.sh"
+    end
 
     puts "Load SetMotd Launch Daemon"
     unless system "sudo launchctl list net.listfeeder.SetMotd > /dev/null"
@@ -428,12 +466,25 @@ namespace :install do
     end
   end
 
+  desc "Allow Touch ID for sudo"
+  task :touchid do |task|
+    step task.comment
+
+    lines = File.readlines "/etc/pam.d/sudo"
+
+    unless lines[1].strip.end_with? "pam_tid.so"
+      lines = lines.insert 1, "auth sufficient pam_tid.so\n"
+
+      sh "sudo", "sh", "-c", "echo \"#{lines.join}\" > /etc/pam.d/sudo"
+    end
+  end
+
   desc "Install iTerm Integration"
   task :iterm => [:fish] do |task|
     step task.comment
 
     unless File.exists? File.expand_path("~/.iterm2_shell_integration.fish")
-      sh "curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash"
+      sh "curl -L https://iterm2.com/shell_integration/fish -o ~/.iterm2_shell_integration.fish"
     end
   end
 
@@ -483,6 +534,7 @@ namespace :install do
     :ssh_key,
     :launchd,
     :sudoers,
+    :touchid,
   ]
 end
 
