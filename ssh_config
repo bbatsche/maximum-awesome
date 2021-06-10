@@ -5,3 +5,13 @@ Host 127.0.0.1
 Host *
     AddKeysToAgent yes
     UseKeychain yes
+
+Host router
+    User root
+    HostName crown.home.listfeeder.net
+Host ds1821
+    User admin
+    HostName ds1821.home.listfeeder.net
+Host ds1513
+    User admin
+    HostName ds1513.home.listfeeder.net
