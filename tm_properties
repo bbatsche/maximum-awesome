@@ -7,12 +7,12 @@ tabSize          = 4
 wrapColumn       = 120
 
 # Add these files to the project view:
-myExtraIncludes = ".tm_properties,.gitignore,.hgignore,.htaccess,.env,.env.*,.htaccess,.htpasswd,.travis.yml,.rbenv*,.ruby*,.bumpversion.cfg,.ansiblespec,.rspec,.bowerrc,.php_cs,.editorconfig,.gitattributes,.docker,.babelrc,.blackfire.yml,.htaccess.sample,.magento,.magento*,.php_cs.dist,.user.ini,.envrc,.php-version,.phpenv-version,.bin"
+myExtraIncludes = ".*"
 fileBrowserGlob = "{*,$myExtraIncludes}"
 include = "{$include,$myExtraIncludes}"
 
 # Hide these files from the search dialog:
-myExtraExcludes = "log,vendor,tmp,*.sqlite3,node_modules,storage,bower_components"
+myExtraExcludes = "log,vendor,tmp,*.sqlite3,node_modules,storage,bower_components,.git,*.rpyc"
 excludeInFileChooser  = "{$excludeInFileChooser,$myExtraExcludes}"
 excludeInFolderSearch = "{$excludeInFolderSearch,$myExtraExcludes}"
 
@@ -105,7 +105,7 @@ fileType = text.html.php
 tabSize = 2
 
 [ source.yaml ]
-tabSize          = 2
+tabSize = 2
 
 [ source.scss ]
 tabSize = 2
