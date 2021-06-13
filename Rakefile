@@ -147,6 +147,7 @@ COPIED_FILES = filemap(
   "motd.sh"             => "/usr/local/bin/motd.sh",
   "ssh_config"          => "~/.ssh/config",
   "tm_properties"       => "~/.tm_properties",
+  "gitconfig"           => "~/.gitconfig",
 )
 
 LINKED_FILES = filemap(
@@ -156,6 +157,7 @@ LINKED_FILES = filemap(
   "vimrc.bundles"                   => "~/.vimrc.bundles",
   "net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist",
   "conf.dockerps"                   => "~/.grc/conf.dockerps"
+  "gitignore"                       => "~/.config/git/ignore",
 )
 
 HOMEBREW_PACKAGES = [
