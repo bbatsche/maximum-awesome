@@ -156,7 +156,7 @@ LINKED_FILES = filemap(
   "vimrc"                           => "~/.vimrc",
   "vimrc.bundles"                   => "~/.vimrc.bundles",
   "net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist",
-  "conf.dockerps"                   => "~/.grc/conf.dockerps"
+  "conf.dockerps"                   => "~/.grc/conf.dockerps",
   "gitignore"                       => "~/.config/git/ignore",
 )
 
