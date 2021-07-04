@@ -223,6 +223,7 @@ PIP_PACKAGES = [
 ]
 
 HOMEBREW_TAPS = [
+  "bbatsche/cask-adobe-fonts",
   "bbatsche/misc",
   "drone/drone",
   "github/gh",
@@ -243,11 +244,14 @@ DEPRECATED_TAPS = [
 CASK_PACKAGES = [
   "1password-cli",
   "adoptopenjdk",
+  "bbatsche/cask-adobe-fonts/font-source-code-pro",
+  "bbatsche/cask-adobe-fonts/font-source-sans",
+  "bbatsche/cask-adobe-fonts/font-source-serif",
   "docker",
+  "font-comic-neue",
   "font-hasklig",
   "font-hasklug-nerd-font",
   "font-sauce-code-pro-nerd-font",
-  "font-source-code-pro",
   "growlnotify",
   "renpy",
   "vagrant",
