@@ -305,7 +305,6 @@ FISHER_PLUGINS = [
   "oh-my-fish/plugin-thefuck",
   "oh-my-fish/plugin-tmux",
   "oh-my-fish/plugin-virtualfish",
-  "rominf/omf-plugin-hub",
   "spacekookie/omf-color-manual",
   "~/Repos/Fish-Defaults",
   "~/Repos/Fish-Prompt",
