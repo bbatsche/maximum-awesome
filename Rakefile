@@ -134,30 +134,32 @@ end
 
 def filemap(map)
   map.inject({}) do |result, (key, value)|
-    result[File.expand_path(key)] = File.expand_path(value)
+    result[File.expand_path("assets/#{key}")] = File.expand_path(value)
     result
   end.freeze
 end
 
 COPIED_FILES = filemap(
-  "vimrc.local"         => "~/.vimrc.local",
-  "vimrc.bundles.local" => "~/.vimrc.bundles.local",
-  "tmux.conf.local"     => "~/.tmux.conf.local",
-  "composer.json"       => "~/.composer/composer.json",
-  "motd.sh"             => "/usr/local/bin/motd.sh",
-  "ssh_config"          => "~/.ssh/config",
-  "tm_properties"       => "~/.tm_properties",
-  "gitconfig"           => "~/.gitconfig",
+  "git/gitconfig"           => "~/.gitconfig",
+  "launchd/motd.sh"         => "/usr/local/bin/motd.sh",
+  "tmux/tmux.conf.local"    => "~/.tmux.conf.local",
+  "vim/vimrc.local"         => "~/.vimrc.local",
+  "vim/vimrc.bundles.local" => "~/.vimrc.bundles.local",
+  "composer.json"           => "~/.composer/composer.json",
+  "ssh_config"              => "~/.ssh/config",
+  "tm_properties"           => "~/.tm_properties",
 )
 
 LINKED_FILES = filemap(
-  "vim"                             => "~/.vim",
-  "tmux.conf"                       => "~/.tmux.conf",
-  "vimrc"                           => "~/.vimrc",
-  "vimrc.bundles"                   => "~/.vimrc.bundles",
-  "net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist",
-  "conf.dockerps"                   => "~/.grc/conf.dockerps",
-  "gitignore"                       => "~/.config/git/ignore",
+  "git/gitignore"                           => "~/.config/git/ignore",
+  "grc/conf.dockerimages"                   => "~/.grc/conf.dockerimages",
+  "grc/conf.dockerps"                       => "~/.grc/conf.dockerps",
+  "grc/grc.conf"                            => "~/.grc/grc.conf",
+  "launchd/net.listfeeder.UpdateBrew.plist" => "~/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist",
+  "tmux/tmux.conf"                          => "~/.tmux.conf",
+  "vim/vim"                                 => "~/.vim",
+  "vim/vimrc"                               => "~/.vimrc",
+  "vim/vimrc.bundles"                       => "~/.vimrc.bundles",
 )
 
 HOMEBREW_PACKAGES = [
@@ -271,8 +273,8 @@ VAGRANT_PLUGINS = [
 
 GITHUB_REPOS = {
   "bbatsche/BeBat-Fish-Defaults" => "~/Repos/Fish-Defaults",
-  "bbatsche/Fish-Prompt-BeBat" => "~/Repos/Fish-Prompt",
-  "bbatsche/Vagrant-Setup" => "~/Vagrant",
+  "bbatsche/Fish-Prompt-BeBat"   => "~/Repos/Fish-Prompt",
+  "bbatsche/Vagrant-Setup"       => "~/Vagrant",
 }
 
 FISHER_PLUGINS = [
@@ -435,7 +437,7 @@ namespace :install do
     step task.comment
     unless File.exists? "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
       puts "Copy SetMotd Launch Daemon"
-      sh "sudo", "cp", __dir__ + "/net.listfeeder.SetMotd.plist", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
+      sh "sudo", "cp", __dir__ + "/assets/launchd/net.listfeeder.SetMotd.plist", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
 
       puts "Secure Motd Script"
       sh "sudo", "chmod", "740", "/usr/local/bin/motd.sh"
@@ -455,7 +457,7 @@ namespace :install do
   desc "Install Sudoers File For Vagrant"
   task :sudoers do |task|
     step task.comment
-    file = __dir__ + "/sudoers_vagrant"
+    file = __dir__ + "/assets/sudoers_vagrant"
     unless system "visudo -cf #{file} > /dev/null"
       puts "Sudoers file failed validation; skipping!"
       return
@@ -560,7 +562,7 @@ task :uninstall do
 
   # delete unchanged copied files
   COPIED_FILES.each do |orig, copy|
-    rm_f copy, :verbose => true if File.read(orig) == File.read(copy)
+    rm_f copy, :verbose => true if File.read("assets/#{orig}") == File.read(copy)
   end
 
   step "homebrew"
