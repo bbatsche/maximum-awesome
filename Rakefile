@@ -160,6 +160,7 @@ LINKED_FILES = filemap(
   "vim/vim"                                 => "~/.vim",
   "vim/vimrc"                               => "~/.vimrc",
   "vim/vimrc.bundles"                       => "~/.vimrc.bundles",
+  "DefaultKeyBinding.dict"                  => "~/Library/KeyBindindings/DefaultKeyBindings.dict",
 )
 
 HOMEBREW_PACKAGES = [
