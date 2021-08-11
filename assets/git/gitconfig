@@ -1,5 +1,5 @@
 [core]
-	editor = mate -w
+	editor = code -w
 [user]
 	name = Ben Batschelet
 	email = bartleby84@gmail.com
