@@ -148,6 +148,7 @@ COPIED_FILES = filemap(
   "composer.json"           => "~/.composer/composer.json",
   "ssh_config"              => "~/.ssh/config",
   "tm_properties"           => "~/.tm_properties",
+  "karabiner.json"          => "~/.config/karabiner/karabiner.json",
 )
 
 LINKED_FILES = filemap(
