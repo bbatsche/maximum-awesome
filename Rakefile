@@ -277,6 +277,7 @@ GITHUB_REPOS = {
   "bbatsche/BeBat-Fish-Defaults" => "~/Repos/Fish-Defaults",
   "bbatsche/Fish-Prompt-BeBat"   => "~/Repos/Fish-Prompt",
   "bbatsche/Vagrant-Setup"       => "~/Vagrant",
+  "bbatsche/bebat-solaraized"    => "~/.vscode/extensions/bebat-solarized",
 }
 
 FISHER_PLUGINS = [
