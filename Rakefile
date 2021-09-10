@@ -161,7 +161,7 @@ LINKED_FILES = filemap(
   "vim/vim"                                 => "~/.vim",
   "vim/vimrc"                               => "~/.vimrc",
   "vim/vimrc.bundles"                       => "~/.vimrc.bundles",
-  "DefaultKeyBinding.dict"                  => "~/Library/KeyBindindings/DefaultKeyBindings.dict",
+  "DefaultKeyBinding.dict"                  => "~/Library/KeyBindindings/DefaultKeyBinding.dict",
 )
 
 HOMEBREW_PACKAGES = [
@@ -258,8 +258,8 @@ CASK_PACKAGES = [
   "font-sauce-code-pro-nerd-font",
   "growlnotify",
   "renpy",
-  "vagrant",
   "vagrant-vmware-utility",
+  "vagrant",
   "webpquicklook",
   # "virtualbox", ## Nope, still crashes the process. Need to run manually.
 ]
