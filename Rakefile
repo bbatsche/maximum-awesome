@@ -149,6 +149,7 @@ COPIED_FILES = filemap(
   "ssh_config"              => "~/.ssh/config",
   "tm_properties"           => "~/.tm_properties",
   "karabiner.json"          => "~/.config/karabiner/karabiner.json",
+  "DefaultKeyBinding.dict"  => "~/Library/KeyBindings/DefaultKeyBinding.dict",
 )
 
 LINKED_FILES = filemap(
@@ -161,7 +162,6 @@ LINKED_FILES = filemap(
   "vim/vim"                                 => "~/.vim",
   "vim/vimrc"                               => "~/.vimrc",
   "vim/vimrc.bundles"                       => "~/.vimrc.bundles",
-  "DefaultKeyBinding.dict"                  => "~/Library/KeyBindings/DefaultKeyBinding.dict",
 )
 
 HOMEBREW_PACKAGES = [

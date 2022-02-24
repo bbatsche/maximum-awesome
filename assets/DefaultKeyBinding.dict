@@ -1,5 +1,285 @@
+// Set a binding for repeating action (e.g.: ^u, 5, right arrow)
+// > defaults write -g NSRepeatCountBinding -string "^u"
 {
-    "@^\UF701" = "noop:";
-    "@^\UF702" = "noop:";
-    "@^\UF703" = "noop:";
+  // uppercase word
+  "^U" = (setMark:, uppercaseWord:, swapWithMark:);
+  // lowercase word
+  "^~u" = (setMark:, lowercaseWord:, swapWithMark:);
+  // titlecase word
+  "^T" = (setMark:, capitalizeWord:, swapWithMark:);
+
+  // delete line/paragraph
+  "^K" = (selectParagraph:, delete:, moveToBeginningOfParagraph:);
+  // duplicate line/paragraph
+  "^D" = (moveToBeginningOfParagraph:, deleteToEndOfParagraph:, yank:, insertNewline:, yank:, moveToEndOfParagraph:);
+
+  // Move line up
+  "^@\UF700" = (
+    selectParagraph:,
+    setMark:,
+    deleteToMark:,
+    moveLeft:,
+    moveToBeginningOfParagraph:,
+    yank:,
+    moveLeft:,
+    moveToBeginningOfParagraph:
+  );
+  // Move line down
+  "^@\UF701" = (
+    selectParagraph:,
+    setMark:,
+    deleteToMark:,
+    moveToEndOfParagraph:,
+    moveRight:,
+    setMark:,
+    yank:,
+    moveLeft:
+  );
+
+  // TextMate Command-Return (Command Return)
+  "@\U000D" = (moveToEndOfParagraph:, insertNewline:);
+  // Insert blank line above paragraph (Command Shift Return)
+  "@$\U000D" = (moveToBeginningOfParagraph:, moveLeft:, insertNewline:);
+
+  // comment with "//"
+  "^/" = (
+    setMark:,
+    moveToBeginningOfParagraph:,
+    insertText:, "// ",
+    swapWithMark:,
+    moveRight:,
+    moveRight:,
+    moveRight:
+  );
+  // comment with "#"
+  "^\\#" = (
+    setMark:,
+    moveToBeginningOfParagraph:,
+    insertText:, "# ",
+    swapWithMark:,
+    moveRight:,
+    moveRight:
+  );
+
+  // comment with /*  */
+  "^?" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "/* ",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, " */",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    moveLeft:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  // surround with **
+  "^*" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "*",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, "*",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  // surround with __
+  "^_" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "_",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, "_",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  // surround with ()
+  "^(" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "(",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, ")",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  // surround with []
+  "^[" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "[",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, "]",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  // surround with {}
+  "^{" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "{",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, "}",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  // surround with ``
+  "^`" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "`",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, "`",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  // surround with ~
+  "^\\~" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "~",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, "~",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  "^'" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "'",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, "'",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  "^\"" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "\"",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, "\"",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
+  "^<" = (
+    selectWord:,
+    setMark:,
+    swapWithMark:,
+    deleteToMark:,
+    insertText:, "<",
+    yank:,
+    insertText:, " ",
+    moveLeft:,
+    insertText:, ">",
+    moveRight:,
+    deleteBackward:,
+    moveLeft:,
+    swapWithMark:,
+    moveLeft:,
+    moveRight:,
+    moveRight:,
+    selectToMark:
+  );
 }
