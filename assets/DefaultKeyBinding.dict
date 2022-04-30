@@ -36,6 +36,10 @@
     moveLeft:
   );
 
+  // Silence bell for Command+control+left/right arrow
+  "^@\UF702" = noop;
+  "^@\UF703" = "noop";
+
   // TextMate Command-Return (Command Return)
   "@\U000D" = (moveToEndOfParagraph:, insertNewline:);
   // Insert blank line above paragraph (Command Shift Return)
