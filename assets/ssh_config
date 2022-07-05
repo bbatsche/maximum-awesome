@@ -6,9 +6,9 @@ Host *
     AddKeysToAgent yes
     UseKeychain yes
 
-Host router
-    User root
-    HostName crown.home.listfeeder.net
+Host pi
+    User pi
+    HostName home.listfeeder.net
 Host ds1821
     User admin
     HostName ds1821.home.listfeeder.net
