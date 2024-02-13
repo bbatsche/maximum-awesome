@@ -141,7 +141,6 @@ end
 
 COPIED_FILES = filemap(
   "git/gitconfig"           => "~/.gitconfig",
-  "launchd/motd.sh"         => "/usr/local/bin/motd.sh",
   "tmux/tmux.conf.local"    => "~/.tmux.conf.local",
   "vim/vimrc.local"         => "~/.vimrc.local",
   "vim/vimrc.bundles.local" => "~/.vimrc.bundles.local",
@@ -163,6 +162,13 @@ LINKED_FILES = filemap(
   "vim/vimrc"                               => "~/.vimrc",
   "vim/vimrc.bundles"                       => "~/.vimrc.bundles",
 )
+
+SYSTEM_FILES = {
+  "launchd/motd.sh"                      => {target: "/usr/local/bin/motd.sh",                              perm: "755"},
+  "launchd/net.listfeeder.SetMotd.plist" => {target: "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist", perm: "644"},
+  "sudo_local"                           => {target: "/etc/pam.d/sudo_local",                               perm: "444"},
+  "sudoers_vagrant"                      => {target: "/etc/sudoers.d/vagrant",                              perm: "440"},
+}
 
 HOMEBREW_PACKAGES = [
   "awscli",
@@ -318,6 +324,17 @@ FISHER_PLUGINS = [
   "~/Repos/plugin-tab",
 ]
 
+namespace :preinstall do
+  desc "Verify Sudoers"
+  task :verify_sudoers do
+    file = File.expand_path("assets/sudoers_vagrant")
+
+    unless system "visudo -cf #{file} > /dev/null"
+      raise "Sudoers file failed validation; abort!"
+    end
+  end
+end
+
 namespace :install do
   desc "Update or Install Brew"
   task :brew do |task|
@@ -402,6 +419,24 @@ namespace :install do
     end
   end
 
+  desc "Copy System Files"
+  task :copy_system_files => [:"preinstall:verify_sudoers"] do |task|
+    step task.comment
+
+    SYSTEM_FILES.each do |orig, spec|
+      orig = File.expand_path "assets/#{orig}"
+      target = File.expand_path spec[:target]
+
+      puts " - #{target}"
+
+      unless File.exists? target
+        sh "sudo", "cp", orig, target
+        sh "sudo", "chmod", spec[:perm], target
+        sh "sudo", "chown", "root:wheel", target
+      end
+    end
+  end
+
   desc "Install Vundle"
   task :vundle => [:homebrew_packages] do |task|
     step task.comment
@@ -439,54 +474,15 @@ namespace :install do
   end
 
   desc "Load Launchd Agent & Daemon"
-  task :launchd => [:link_files, :copy_files, :brew] do |task|
+  task :launchd => [:link_files, :copy_files, :brew, :copy_system_files] do |task|
     step task.comment
-    unless File.exists? "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
-      puts "Copy SetMotd Launch Daemon"
-      sh "sudo", "cp", __dir__ + "/assets/launchd/net.listfeeder.SetMotd.plist", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
 
-      puts "Secure Motd Script"
-      sh "sudo", "chmod", "740", "/usr/local/bin/motd.sh"
-      sh "sudo", "chown", "root:wheel", "/usr/local/bin/motd.sh"
-    end
-
-    puts "Load SetMotd Launch Daemon"
     unless system "sudo launchctl list net.listfeeder.SetMotd > /dev/null"
       sh "sudo", "launchctl", "load", "/Library/LaunchDaemons/net.listfeeder.SetMotd.plist"
     end
 
     unless system "launchctl list net.listfeeder.UpdateBrew > /dev/null"
       sh "launchctl", "load", Dir.home + "/Library/LaunchAgents/net.listfeeder.UpdateBrew.plist"
-    end
-  end
-
-  desc "Install Sudoers File For Vagrant"
-  task :sudoers do |task|
-    step task.comment
-    file = __dir__ + "/assets/sudoers_vagrant"
-    unless system "visudo -cf #{file} > /dev/null"
-      puts "Sudoers file failed validation; skipping!"
-      return
-    end
-
-    unless File.exists? "/etc/sudoers.d/vagrant"
-      puts "Copy Sudoers File"
-      sh "sudo", "cp", file, "/etc/sudoers.d/vagrant"
-      sh "sudo", "chown", "root:wheel", "/etc/sudoers.d/vagrant"
-      sh "sudo", "chmod", "440", "/etc/sudoers.d/vagrant"
-    end
-  end
-
-  desc "Allow Touch ID for sudo"
-  task :touchid do |task|
-    step task.comment
-
-    lines = File.readlines "/etc/pam.d/sudo"
-
-    unless lines[1].strip.end_with? "pam_tid.so"
-      lines = lines.insert 1, "auth sufficient pam_tid.so\n"
-
-      sh "sudo", "sh", "-c", "echo \"#{lines.join}\" > /etc/pam.d/sudo"
     end
   end
 
@@ -537,6 +533,7 @@ namespace :install do
     :pip,
     :copy_files,
     :link_files,
+    :copy_system_files,
     :vundle,
     :fish,
     :vagrant_plugins,
