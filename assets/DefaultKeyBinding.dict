@@ -37,8 +37,8 @@
   );
 
   // Silence bell for Command+control+left/right arrow
-  "^@\UF702" = noop;
-  "^@\UF703" = "noop";
+  "^@\UF702" = "noop:";
+  "^@\UF703" = "noop:";
 
   // TextMate Command-Return (Command Return)
   "@\U000D" = (moveToEndOfParagraph:, insertNewline:);
