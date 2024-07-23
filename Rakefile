@@ -178,7 +178,7 @@ HOMEBREW_PACKAGES = [
   "direnv",
   "dnsmasq",
   "drone",
-  "exa",
+  "eza",
   "fish",
   "fisherman",
   "gh",
