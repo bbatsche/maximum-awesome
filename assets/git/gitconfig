@@ -1,27 +1,72 @@
 [core]
 	editor = code -w
+	fsmonitor = true
+	untrackedCache = true
 [user]
 	name = Ben Batschelet
 	email = bartleby84@gmail.com
+	signingKey = ~/.ssh/id_ed25519.pub
+[column]
+    ui = auto
+[branch]
+    sort = -committerdate
+[tag]
+    sort = version:refname
 [init]
-	defaultBranch = develop
+	defaultBranch = main
 [hub]
 	protocol = ssh
+[push]
+    default = simple
+    autoSetupRemote = true
+    followTags = true
+[fetch]
+    prune = true
+    pruneTags = true
+    all = true
+[pull]
+	ff = only
+[help]
+    autocorrect = prompt
+[commit]
+    verbose = true
+[rerere]
+    enabled = true
+    autoupdate = true
+[rebase]
+    autoSquash = true
+    autoStash = true
+    updateRefs = true
+[rerere]
+	enabled = true
+	autoUpdate = true
+[gpg]
+	format = ssh
+
+
 [diff]
-	tool = Kaleidoscope
+	tool = juxta
 [merge]
-	tool = Kaleidoscope
+	tool = juxta
+	conflictstyle = zdiff3
+
+
 [difftool]
 	prompt = false
 [mergetool]
 	prompt = false
-[difftool "Kaleidoscope"]
-	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+
+[difftool "juxta"]
+	cmd = juxta _difftool --local \"$LOCAL\" --remote \"$REMOTE\" --merged \"$MERGED\"
+	trustExitCode = true
 [difftool "sourcetree"]
-	cmd = ksdiff -w \"$LOCAL\" \"$REMOTE\"
-[mergetool "Kaleidoscope"]
-	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
-	trustexitcode = true
+	cmd = /usr/local/bin/juxta _difftool --local \"$LOCAL\" --remote \"$REMOTE\" --merged \"$MERGED\"
+	trustExitCode = true
+	path =
+
+[mergetool "juxta"]
+	cmd = juxta _mergetool --base \"${BASE:-/dev/null}\" --local \"$LOCAL\" --remote \"$REMOTE\" --merged \"${MERGED:-/dev/null}\"
+	trustExitCode = true
 [mergetool "sourcetree"]
-	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
+	cmd = /usr/local/bin/juxta _mergetool --base \"${BASE:-/dev/null}\" --local \"$LOCAL\" --remote \"$REMOTE\" --merged \"${MERGED:-/dev/null}\"
 	trustExitCode = true
