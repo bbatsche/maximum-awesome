@@ -12,6 +12,7 @@
     sort = -committerdate
 [tag]
     sort = version:refname
+	gpgsign = true
 [init]
 	defaultBranch = main
 [hub]
@@ -30,6 +31,7 @@
     autocorrect = prompt
 [commit]
     verbose = true
+	gpgsign = true
 [rerere]
     enabled = true
     autoupdate = true
